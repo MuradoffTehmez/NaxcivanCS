@@ -19,6 +19,27 @@ Məxfi zəiflik detalları, işlək exploit və tokenləri açıq issue/PR-də p
 
 Hesabatda təsirlənən commit/teq, komponent, təsir, test mühiti, minimum reproduksiya və mümkün düzəliş olmalıdır. Şəxsi məlumatları və giriş sirlərini silin. İcazəsiz üçüncü tərəf serverlərini test etməyin.
 
+## Avtomatik yoxlamalar
+
+| Qat | Nə edir | Harada |
+|---|---|---|
+| **CodeQL** | C# və GitHub Actions üçün statik analiz (`security-extended`) | `codeql.yml`, həftəlik + hər PR |
+| **Dependency review** | PR-ın gətirdiyi yeni asılılıqlarda orta+ zəiflik PR-ı bloklayır | `security.yml` |
+| **Vulnerable package scan** | Transitive daxil məlum CVE-lər | `security.yml`, həftəlik |
+| **Repository hygiene** | Gizli fayllar (`.env`, `.pem`, `.pfx`), 5 MB-dan böyük binarlar | `security.yml` |
+| **Secret scanning + push protection** | Gizli açarın commit edilməsinə **mane olur** | GitHub, repo səviyyəsində |
+| **Dependabot** | Asılılıq yeniləmələri və təhlükəsizlik xəbərdarlıqları | `dependabot.yml`, həftəlik |
+
+Nəticələr **Security** tabında görünür. CodeQL qurulan kimi 5 real tapıntı verdi
+(`actions/missing-workflow-permissions`) — hamısı düzəldilib.
+
+## Server-authoritative dizayn
+
+Layihə GPLv3-dür: dəyişdirilmiş client mənbədən qurula bilər. Ona görə
+client-in saxladığı heç bir dəyər etibarlı sayılmır — health, damage, atəş
+kadensiyası, recoil və hərəkət sürəti serverdə hesablanır (PRD 156).
+Ətraflı: [ARCHITECTURE](docs/ARCHITECTURE.md).
+
 ## İnkişaf qaydaları
 
 - Gameplay qərarları serverdə qalır; client paketi etibarsız girişdir.
