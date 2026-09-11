@@ -7,6 +7,12 @@ on:
   pull_request:
     branches: [main, develop]
 
+# PRD 111 - CodeQL (actions/missing-workflow-permissions) bunu tapdi:
+# acik permissions olmadiqda GITHUB_TOKEN genis yazma icazesi alir.
+# Ele bir job yoxdur ki, repoya yazsin, ona gore hamisi yalniz oxuyur.
+permissions:
+  contents: read
+
 env:
   DOTNET_NOLOGO: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true

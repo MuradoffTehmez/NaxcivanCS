@@ -37,6 +37,16 @@ yoxlamalar yaşıl olduqda `release/*` vasitəsilə `main`-ə çıxarılır.
 7. Teq: **prefikssiz** (`0.3.0`). İlk üç buraxılış `v` prefiksi ilədir; onlar
    tarix olaraq olduğu kimi qalır.
 8. `gh release create` ilə GitHub Release yarat və `--latest` təyin et.
+9. **`develop`-u `main`-ə fast-forward et:**
+
+   ```bash
+   git push origin origin/main:refs/heads/develop
+   ```
+
+   PR merge-i `main`-ə merge commit-i yazır, `develop` isə onu görmür. Bu addım
+   olmasa iki branch-in commit sayı hər buraxılışdan sonra bir-bir fərqlənir —
+   kod eyni olsa belə. `main` `develop`-u tam ehtiva etdiyi üçün bu
+   fast-forward-dur, force-push deyil.
 
 > GitHub ən son **yaradılan** release-i "Latest" sayır, ən yüksək versiyanı yox.
 > Köhnə buraxılışları sonradan əlavə edirsənsə, sonda `gh release edit <yeni> --latest` çağır.
@@ -49,8 +59,28 @@ yoxlamalar yaşıl olduqda `release/*` vasitəsilə `main`-ə çıxarılır.
 | `codeql.yml` | C# və Actions üçün statik təhlükəsizlik analizi | Push, PR, həftəlik |
 | `security.yml` | Zəif/köhnəlmiş paketlər, PR asılılıq nəzarəti, repo gigiyenası | Push, PR, həftəlik |
 
-`main` və `develop` branch protection ilə qorunur: PR olmadan push edilmir və
-tələb olunan yoxlamalar keçməlidir.
+### Branch protection
+
+| Qayda | `main` | `develop` |
+|---|---|---|
+| PR tələb olunur | ✅ | ✅ |
+| Tələb olunan yoxlamalar | 8 (CodeQL daxil) | 6 |
+| Branch güncel olmalıdır | ✅ | ❌ |
+| Söhbətlər həll olunmalıdır | ✅ | ❌ |
+| Force push | ❌ | ❌ |
+| Branch silinməsi | ❌ | ❌ |
+| Admin üçün məcburi | ❌ | ❌ |
+
+**Admin üçün məcburi deyil** — repo sahibi buraxılış sinxronu və təcili
+düzəliş üçün qaydadan yan keçə bilir. Bu, şüurlu güzəştdir: tək saxlayıcılı
+layihədə tam kilid özünü kilidləmək riskini yaradır. Komanda böyüyəndə
+`enforce_admins` açılmalıdır.
+
+### Repo təhlükəsizlik parametrləri
+
+- Secret scanning + **push protection** (gizli açar commit edilməsinə mane olur)
+- Dependabot security updates
+- Merge sonrası branch avtomatik silinir
 
 ## Commit qaydaları
 
