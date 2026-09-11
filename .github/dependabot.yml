@@ -1,21 +1,60 @@
+# PRD 111 - Asılılıqların avtomatik yenilənməsi.
+#
+# Qruplaşdırma vacibdir: qruplaşmadan hər paket üçün ayrıca PR açılır.
+# Əvvəlki konfiqurasiya bir həftədə 7 PR yaratdı və onlardan biri digəri ilə
+# konflikt verdi (eyni .csproj-a toxunduqları üçün). Qrup halında bu, 2 PR olur.
 version: 2
+
 updates:
   - package-ecosystem: "nuget"
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
       - "dotnet"
     commit-message:
       prefix: "chore(deps)"
+    groups:
+      # Test alətləri birlikdə yenilənir — onlar bir-birindən asılıdır
+      # (xunit və xunit.runner.visualstudio uyğun versiyalar tələb edir).
+      test-tooling:
+        patterns:
+          - "xunit*"
+          - "Microsoft.NET.Test.Sdk"
+          - "coverlet*"
+      # Qalan patch/minor yeniləmələr tək PR-da.
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "monthly"
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 3
     labels:
       - "dependencies"
       - "ci"
     commit-message:
       prefix: "chore(ci-deps)"
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  # PRD 99, 100 - Dedicated server və backend konteynerləri.
+  - package-ecosystem: "docker"
+    directories:
+      - "/infrastructure/docker"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore(docker-deps)"
