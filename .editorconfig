@@ -16,6 +16,11 @@ trim_trailing_whitespace = false
 
 # PRD 154 - Coding standartlari
 [*.cs]
+# REUSE/SPDX licensing tags. LICENSE stays byte-identical to the canonical
+# GPL-3.0 text so GitHub can detect it; the machine-readable copyright and
+# license identifier live in each source file instead. IDE0073 enforces it.
+file_header_template = SPDX-FileCopyrightText: 2026 Tahmaz Muradov\nSPDX-License-Identifier: GPL-3.0-or-later
+dotnet_diagnostic.IDE0073.severity = warning
 dotnet_sort_system_directives_first = true
 csharp_new_line_before_open_brace = all
 csharp_prefer_braces = true:warning
