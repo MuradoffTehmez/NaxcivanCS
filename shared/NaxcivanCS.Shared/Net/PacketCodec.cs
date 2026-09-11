@@ -168,6 +168,96 @@ public static class PacketCodec
     public static WorldSnapshot DecodeSnapshot(ReadOnlySpan<byte> payload)
         => SnapshotSerializer.Deserialize(payload);
 
+    // ----------------------------------------------------------- Shot events
+
+    /// <summary>
+    /// PRD 17, 46 - Serverin hesabladığı atəş.
+    /// Client bundan muzzle flash, tracer və kamera kick-i üçün istifadə edir;
+    /// atəşin özünü və istiqamətini <b>server</b> təyin edir.
+    ///
+    /// [shooterId i32][origin 3xf32][end 3xf32][punchPitch f32][punchYaw f32]
+    /// [shotIndex u16][hit u8]
+    /// </summary>
+    public static byte[] EncodeShotFired(
+        int shooterPeerId,
+        System.Numerics.Vector3 origin,
+        System.Numerics.Vector3 end,
+        float punchPitch,
+        float punchYaw,
+        int shotIndex,
+        bool hit)
+    {
+        var payload = new byte[4 + 12 + 12 + 4 + 4 + 2 + 1];
+        Span<byte> span = payload;
+
+        BinaryPrimitives.WriteInt32LittleEndian(span[..4], shooterPeerId);
+        WriteVector(span.Slice(4, 12), origin);
+        WriteVector(span.Slice(16, 12), end);
+        BinaryPrimitives.WriteSingleLittleEndian(span.Slice(28, 4), punchPitch);
+        BinaryPrimitives.WriteSingleLittleEndian(span.Slice(32, 4), punchYaw);
+        BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(36, 2), (ushort)Math.Clamp(shotIndex, 0, ushort.MaxValue));
+        span[38] = hit ? (byte)1 : (byte)0;
+
+        return Wrap(MessageType.ShotFired, payload);
+    }
+
+    public static (int ShooterPeerId, System.Numerics.Vector3 Origin, System.Numerics.Vector3 End,
+        float PunchPitch, float PunchYaw, int ShotIndex, bool Hit) DecodeShotFired(ReadOnlySpan<byte> payload)
+    {
+        if (payload.Length < 39)
+        {
+            throw new ArgumentException("ShotFired faydalı yükü natamamdır.", nameof(payload));
+        }
+
+        return (
+            BinaryPrimitives.ReadInt32LittleEndian(payload[..4]),
+            ReadVector(payload.Slice(4, 12)),
+            ReadVector(payload.Slice(16, 12)),
+            BinaryPrimitives.ReadSingleLittleEndian(payload.Slice(28, 4)),
+            BinaryPrimitives.ReadSingleLittleEndian(payload.Slice(32, 4)),
+            BinaryPrimitives.ReadUInt16LittleEndian(payload.Slice(36, 2)),
+            payload[38] != 0);
+    }
+
+    /// <summary>
+    /// PRD 78 - Şarjor vəziyyəti (yalnız sahibinə göndərilir).
+    /// [magazine u16][reserve u16][reloading u8]
+    /// </summary>
+    public static byte[] EncodeWeaponState(int magazine, int reserve, bool reloading)
+    {
+        var payload = new byte[2 + 2 + 1];
+        BinaryPrimitives.WriteUInt16LittleEndian(payload.AsSpan(0, 2), (ushort)Math.Clamp(magazine, 0, ushort.MaxValue));
+        BinaryPrimitives.WriteUInt16LittleEndian(payload.AsSpan(2, 2), (ushort)Math.Clamp(reserve, 0, ushort.MaxValue));
+        payload[4] = reloading ? (byte)1 : (byte)0;
+
+        return Wrap(MessageType.WeaponState, payload);
+    }
+
+    public static (int Magazine, int Reserve, bool Reloading) DecodeWeaponState(ReadOnlySpan<byte> payload)
+    {
+        if (payload.Length < 5)
+        {
+            throw new ArgumentException("WeaponState faydalı yükü natamamdır.", nameof(payload));
+        }
+
+        return (
+            BinaryPrimitives.ReadUInt16LittleEndian(payload[..2]),
+            BinaryPrimitives.ReadUInt16LittleEndian(payload.Slice(2, 2)),
+            payload[4] != 0);
+    }
+
+    private static void WriteVector(Span<byte> span, System.Numerics.Vector3 value)
+    {
+        BinaryPrimitives.WriteSingleLittleEndian(span[..4], value.X);
+        BinaryPrimitives.WriteSingleLittleEndian(span.Slice(4, 4), value.Y);
+        BinaryPrimitives.WriteSingleLittleEndian(span.Slice(8, 4), value.Z);
+    }
+
+    private static System.Numerics.Vector3 ReadVector(ReadOnlySpan<byte> span) => new(
+        BinaryPrimitives.ReadSingleLittleEndian(span[..4]),
+        BinaryPrimitives.ReadSingleLittleEndian(span.Slice(4, 4)),
+        BinaryPrimitives.ReadSingleLittleEndian(span.Slice(8, 4)));
+
     // ------------------------------------------------------------ Damage events
 
     /// <summary>[victimPeerId i32][attackerPeerId i32][hitBox u8][healthDamage u16][killed u8]</summary>

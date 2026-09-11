@@ -24,13 +24,14 @@ public sealed class ServerPlayer
     /// <summary>Buferdə saxlanan maksimum input sayı.</summary>
     private const int MaxQueuedInputs = 32;
 
-    public ServerPlayer(int peerId, string username, Team team, Vector3 spawnPosition, float spawnYaw)
+    public ServerPlayer(int peerId, string username, Team team, Vector3 spawnPosition, float spawnYaw, WeaponData weapon)
     {
         PeerId = peerId;
         State = new PlayerState { PeerId = peerId, Username = username, Team = team };
         Movement = MovementState.AtSpawn(spawnPosition, spawnYaw);
         SpawnPosition = spawnPosition;
         SpawnYaw = spawnYaw;
+        Weapon = new WeaponRuntime(weapon);
     }
 
     public int PeerId { get; }
@@ -53,21 +54,17 @@ public sealed class ServerPlayer
 
     public float SpawnYaw { get; set; }
 
-    /// <summary>Son atəşin server vaxtı — fire-rate validasiyası üçün (PRD 47).</summary>
-    public double LastShotServerTimeMs { get; set; } = double.NegativeInfinity;
+    /// <summary>
+    /// PRD 14, 17 - Silahın server tərəfdəki vəziyyəti: patron, reload, recoil.
+    /// Atəş kadensiyasını bu obyekt təyin edir, client yox (PRD 156).
+    /// </summary>
+    public WeaponRuntime Weapon { get; }
 
     /// <summary>Ölüm vaxtı; respawn taymeri bundan hesablanır.</summary>
     public double DeathServerTimeMs { get; private set; }
 
     /// <summary>Son ölçülən gediş-gəliş latency-si, ms (PRD 45).</summary>
     public double LatencyMs { get; set; }
-
-    public string EquippedWeaponId { get; set; } = "weapon_rifle_01";
-
-    public int AmmoInMagazine { get; set; }
-
-    /// <summary>Ardıcıl atışların sayı — spread hesablaması üçün (PRD 18).</summary>
-    public int ShotsInBurst { get; set; }
 
     public uint LastAcknowledgedSequence => Movement.LastProcessedSequence;
 
@@ -126,7 +123,7 @@ public sealed class ServerPlayer
         State.ArmorType = ArmorType.None;
         Movement = MovementState.AtSpawn(SpawnPosition, SpawnYaw);
         History.Clear();
-        ShotsInBurst = 0;
+        Weapon.RefillOnRespawn();
     }
 
     public PlayerSnapshot ToSnapshot() => new(

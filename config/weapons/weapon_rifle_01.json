@@ -5,6 +5,7 @@
   "damage": 34,
   "armorPenetration": 0.7,
   "fireRate": 600,
+  "automatic": true,
   "magazineSize": 30,
   "reserveAmmo": 90,
   "reloadTime": 2.4,
@@ -17,15 +18,45 @@
   "price": 2700,
   "killReward": 300,
   "recoilPattern": [
-    { "vertical": 1.0, "horizontal": 0.0 },
-    { "vertical": 1.3, "horizontal": 0.0 },
-    { "vertical": 1.6, "horizontal": 0.2 },
-    { "vertical": 1.8, "horizontal": 0.5 },
-    { "vertical": 1.9, "horizontal": 0.7 },
-    { "vertical": 1.8, "horizontal": 0.4 },
-    { "vertical": 1.6, "horizontal": -0.3 },
-    { "vertical": 1.4, "horizontal": -0.8 },
-    { "vertical": 1.2, "horizontal": -1.1 },
-    { "vertical": 1.0, "horizontal": -0.9 }
+    {
+      "vertical": 1.0,
+      "horizontal": 0.0
+    },
+    {
+      "vertical": 1.3,
+      "horizontal": 0.0
+    },
+    {
+      "vertical": 1.6,
+      "horizontal": 0.2
+    },
+    {
+      "vertical": 1.8,
+      "horizontal": 0.5
+    },
+    {
+      "vertical": 1.9,
+      "horizontal": 0.7
+    },
+    {
+      "vertical": 1.8,
+      "horizontal": 0.4
+    },
+    {
+      "vertical": 1.6,
+      "horizontal": -0.3
+    },
+    {
+      "vertical": 1.4,
+      "horizontal": -0.8
+    },
+    {
+      "vertical": 1.2,
+      "horizontal": -1.1
+    },
+    {
+      "vertical": 1.0,
+      "horizontal": -0.9
+    }
   ]
 }

@@ -1,4 +1,5 @@
 using Godot;
+using NaxcivanCS.Client.Effects;
 using NaxcivanCS.Client.Network;
 using NaxcivanCS.Client.Player;
 using NaxcivanCS.Client.UI;
@@ -21,6 +22,8 @@ public sealed partial class GameBootstrap : Node3D
     private NetworkClient? _network;
     private LocalPlayerController? _localPlayer;
     private PrototypeHud? _hud;
+    private ShotEffects? _effects;
+    private bool _autoFire;
 
     private int _snapshotCount;
     private double _lastServerTimeMs;
@@ -54,7 +57,12 @@ public sealed partial class GameBootstrap : Node3D
         _network.HandshakeRejected += OnHandshakeRejected;
         _network.SnapshotReceived += OnSnapshotReceived;
         _network.DamageReceived += OnDamageReceived;
+        _network.ShotFired += OnShotFired;
+        _network.WeaponStateReceived += OnWeaponStateReceived;
         _network.Disconnected += OnDisconnected;
+
+        _effects = new ShotEffects { Name = "ShotEffects" };
+        AddChild(_effects);
 
         if (_network.ConnectToServer(address, port) != Error.Ok)
         {
@@ -66,6 +74,10 @@ public sealed partial class GameBootstrap : Node3D
         {
             RunSmokeTest(seconds);
         }
+
+        // Debug: avtomatik atəş — gunplay effektlərini yoxlamaq üçün.
+        // Yalnız --auto-fire verildikdə işləyir, normal oyuna təsir etmir.
+        _autoFire = ParseString(args, "--auto-fire") is not null;
 
         // Debug: render yolunun doğru işlədiyini yoxlamaq üçün ekran şəkli.
         if (ParseString(args, "--screenshot") is { } screenshotPath)
@@ -128,6 +140,11 @@ public sealed partial class GameBootstrap : Node3D
 
         _hud?.UpdatePing(_network.PingMs);
 
+        if (_localPlayer is not null)
+        {
+            _hud?.SetCrosshairSpread(_localPlayer.RecoilRatio);
+        }
+
         // PRD 44 - Render vaxtı serverin son snapshot-ından bir qədər geridədir.
         _renderClockMs += delta * 1000.0;
         double renderTime = _lastServerTimeMs + _renderClockMs - GameConstants.SnapshotInterpolationDelayMs;
@@ -148,6 +165,7 @@ public sealed partial class GameBootstrap : Node3D
         _hud?.UpdateStatus($"Qoşuldu — komanda: {(Team)team}");
 
         _localPlayer = new LocalPlayerController { Name = "LocalPlayer" };
+        _localPlayer.AutoFire = _autoFire;
         AddChild(_localPlayer);
         _localPlayer.Attach(_network);
     }
@@ -224,11 +242,45 @@ public sealed partial class GameBootstrap : Node3D
             return;
         }
 
+        // PRD 78 - Hit feedback: vurduğunu bilmək gunplay-in yarısıdır.
         if (attackerPeerId == _network.LocalPeerId)
         {
-            // PRD 78 - Hit feedback. Vizual/audio effekt Phase 2-də əlavə olunacaq.
-            GD.Print($"[Hit] {(HitBox)hitBox} — {healthDamage} damage{(killed ? " (kill)" : string.Empty)}");
+            _hud?.ShowHitMarker(killed);
         }
+    }
+
+    /// <summary>
+    /// PRD 17, 46 - Serverin hesabladığı atəş: tracer, muzzle flash, kamera kick.
+    /// Effektlər serverin verdiyi nöqtələrdən qurulur — client "hara dəydi"
+    /// qərarını özü vermir.
+    /// </summary>
+    private void OnShotFired(
+        int shooterPeerId, Vector3 origin, Vector3 end, float punchPitch, float punchYaw, int shotIndex, bool hit)
+    {
+        if (_network is null)
+        {
+            return;
+        }
+
+        bool isLocal = shooterPeerId == _network.LocalPeerId;
+
+        if (isLocal && _localPlayer is not null)
+        {
+            _localPlayer.OnShotFired(punchPitch, punchYaw);
+
+            // Lokal oyunçu üçün tracer view model-in lüləsindən başlayır ki,
+            // silahla üst-üstə düşsün.
+            _effects?.SpawnTracer(_localPlayer.MuzzleWorldPosition, end, hit);
+            return;
+        }
+
+        _effects?.SpawnTracer(origin, end, hit);
+    }
+
+    private void OnWeaponStateReceived(int magazine, int reserve, bool reloading)
+    {
+        _hud?.UpdateAmmo(magazine, reserve, reloading);
+        _localPlayer?.SetReloading(reloading);
     }
 
     private void OnDisconnected()

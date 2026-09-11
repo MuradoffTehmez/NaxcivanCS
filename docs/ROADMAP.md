@@ -28,8 +28,12 @@ Milestone tələbləri:
 - [x] 1 tüfəng, atəş (server-authoritative hitscan, lag compensation)
 - [x] Health / damage / death / respawn
 - [x] Ping göstəricisi
-- [ ] Silah view model və atəş animasiyası
-- [ ] Atəş/vurulma səs və vizual effektləri
+- [x] Silah view model, geri-təpmə və sway
+- [x] Recoil (PRD 17 — deterministik pattern, ilk güllə dəqiq)
+- [x] Muzzle flash, tracer, impact izi
+- [x] Hit marker və dinamik crosshair
+- [x] Patron, reload, avtomatik/yarımavtomatik atəş
+- [ ] Atəş və vurulma **səsləri** (PRD 83 — hələ yoxdur)
 - [ ] Əllə oynanış testi (`--headless` deyil, real input ilə)
 
 ### Nə işləyir
@@ -112,7 +116,7 @@ cavablandırıla bilər. Texniki boru kəməri hazırdır; his hələ yoxlanmay�
 | 1 | 10 oyunçu serverə qoşula bilir | 🟡 2 oyunçu e2e-də təsdiqləndi, 10 sınanmayıb |
 | 2 | 5v5 stabil oynanılır | ⬜ |
 | 3 | Server-authoritative movement işləyir | ✅ prediction + reconciliation işləyir |
-| 4 | Weapon firing düzgün sync olunur | 🟡 server hesablayır, vizual/audio yoxdur |
+| 4 | Weapon firing düzgün sync olunur | 🟡 server hesablayır + vizual hazır, audio yoxdur |
 | 5 | Hit registration sabitdir | 🟡 lag comp + hitscan hazır, ping altında sınanmayıb |
 | 6 | Bomb plant/defuse işləyir | ⬜ Phase 3 |
 | 7 | Round reset problemsizdir | ⬜ Phase 2 |

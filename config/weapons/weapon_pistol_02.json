@@ -5,6 +5,7 @@
   "damage": 38,
   "armorPenetration": 0.6,
   "fireRate": 250,
+  "automatic": false,
   "magazineSize": 7,
   "reserveAmmo": 35,
   "reloadTime": 2.2,
@@ -17,8 +18,17 @@
   "price": 700,
   "killReward": 300,
   "recoilPattern": [
-    { "vertical": 2.4, "horizontal": 0.0 },
-    { "vertical": 2.6, "horizontal": 0.6 },
-    { "vertical": 2.6, "horizontal": -0.6 }
+    {
+      "vertical": 2.4,
+      "horizontal": 0.0
+    },
+    {
+      "vertical": 2.6,
+      "horizontal": 0.6
+    },
+    {
+      "vertical": 2.6,
+      "horizontal": -0.6
+    }
   ]
 }

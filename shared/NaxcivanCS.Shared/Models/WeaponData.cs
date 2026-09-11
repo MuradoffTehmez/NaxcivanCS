@@ -46,7 +46,16 @@ public sealed record WeaponData
     public int Price { get; init; }
     public int KillReward { get; init; } = 300;
 
-    /// <summary>Atışlar arası minimum interval — PRD 47 fire-rate validasiyası üçün.</summary>
+    /// <summary>
+    /// PRD 14 - Tetik basılı saxlandıqda avtomatik atəş açırmı?
+    /// Tapança, snayper və ov tüfəngi üçün <c>false</c> — hər atış ayrıca klik tələb edir.
+    /// </summary>
+    public bool Automatic { get; init; }
+
+    /// <summary>Bir dəfəyə atılan güllə sayı (ov tüfəngi üçün >1).</summary>
+    public int PelletsPerShot { get; init; } = 1;
+
+    /// <summary>Atışlar arası minimum interval, saniyə.</summary>
     public float ShotInterval => FireRate > 0 ? 60f / FireRate : 0f;
 }
 

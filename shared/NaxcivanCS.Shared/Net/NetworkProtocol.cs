@@ -27,6 +27,8 @@ public enum MessageType : ushort
     BombDefused = 107,
     MatchEnded = 108,
     BuyResult = 109,
+    ShotFired = 110,
+    WeaponState = 111,
 }
 
 /// <summary>PRD 43, 46 - Client-dən gələn yeganə gameplay girişi.</summary>

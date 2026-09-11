@@ -25,6 +25,20 @@ public sealed partial class GameWorld : Node3D
     private readonly Dictionary<int, CharacterBody3D> _bodies = new();
 
     private WeaponCatalog _weapons = new();
+
+    /// <summary>PRD 136 - MVP-də hamı eyni tüfənglə başlayır; buy menu Phase 3-dədir.</summary>
+    private WeaponData DefaultWeapon { get; set; } = new()
+    {
+        Id = "fallback",
+        Name = "Fallback",
+        Category = WeaponCategory.Rifle,
+        Damage = 34,
+        FireRate = 600,
+        MagazineSize = 30,
+        ReserveAmmo = 90,
+        ReloadTime = 2.4f,
+        Automatic = true,
+    };
     private HitValidator? _hitValidator;
     private uint _tick;
     private double _serverTimeMs;
@@ -50,6 +64,7 @@ public sealed partial class GameWorld : Node3D
             return;
         }
 
+        DefaultWeapon = rifle;
         _hitValidator = new HitValidator(rifle);
         GD.Print($"[GameWorld] {_weapons.All.Count} silah yükləndi, tick={GameConstants.ServerTickRate}");
     }
@@ -57,7 +72,7 @@ public sealed partial class GameWorld : Node3D
     public ServerPlayer AddPlayer(int peerId, string username, Team team)
     {
         NumVector3 spawn = NextSpawnPoint(team);
-        var player = new ServerPlayer(peerId, username, team, spawn, BlockoutMap.SpawnYaw(team));
+        var player = new ServerPlayer(peerId, username, team, spawn, BlockoutMap.SpawnYaw(team), DefaultWeapon);
         _players[peerId] = player;
 
         CharacterBody3D body = CreateBody(peerId, spawn);
@@ -87,7 +102,11 @@ public sealed partial class GameWorld : Node3D
 
         foreach (ServerPlayer player in _players.Values)
         {
-            SimulatePlayer(player, fixedDelta);
+            InputButtons buttons = SimulatePlayer(player, fixedDelta);
+
+            // PRD 14, 17 - Silah tick-i: atəş, reload, recoil. Hərəkətdən SONRA
+            // çağırılır ki, güllə oyunçunun bu tick-dəki son mövqeyindən çıxsın.
+            TickWeapon(player, buttons, fixedDelta);
 
             // PRD 45 - Lag compensation üçün mövqe tarixçəsi.
             player.History.Record(_serverTimeMs, player.Movement.Position, player.Movement.Yaw, player.Movement.IsCrouching);
@@ -107,44 +126,110 @@ public sealed partial class GameWorld : Node3D
     }
 
     /// <summary>
-    /// PRD 46 - Atəş emalı. Client yalnız istiqamət göndərir, nəticəni server hesablayır.
+    /// PRD 14, 17, 46 - Silahın bir tick-i: kadensiya, patron, reload, recoil.
+    ///
+    /// Client yalnız düymə vəziyyətini göndərir; atəşin açılıb-açılmayacağını
+    /// <see cref="WeaponRuntime"/> qərara alır. Atəş açılarsa, güllənin
+    /// istiqamətinə serverin hesabladığı recoil əlavə olunur — beləliklə
+    /// "no-recoil" hiylə mənasızdır (PRD 156).
     /// </summary>
-    public ShotResult ProcessShot(int shooterPeerId, NumVector3 aimDirection)
+    private void TickWeapon(ServerPlayer player, InputButtons buttons, float delta)
     {
-        if (_hitValidator is null || !_players.TryGetValue(shooterPeerId, out ServerPlayer? shooter))
+        if (_hitValidator is null || !player.State.IsAlive)
         {
-            return default;
+            return;
         }
 
-        ShotResult result = _hitValidator.Evaluate(shooter, aimDirection, _players.Values, _serverTimeMs);
+        bool fireHeld = buttons.HasFlag(InputButtons.PrimaryFire);
+        bool reloadRequested = buttons.HasFlag(InputButtons.Reload);
 
-        if (result.Violation is { } violation)
+        WeaponAction action = player.Weapon.Tick(fireHeld, reloadRequested, delta);
+
+        if (action is WeaponAction.ReloadStarted or WeaponAction.ReloadFinished)
         {
-            RegisterViolation(shooter, violation);
-            return result;
+            EmitSignal(SignalName.WeaponStateChanged, player.PeerId);
+            return;
         }
+
+        if (action != WeaponAction.Fire)
+        {
+            return;
+        }
+
+        // Güllə: sonuncu gülləyə tətbiq olunan sapma (ilk atışda sıfır).
+        RecoilPunch bulletPunch = player.Weapon.LastShotPunch;
+        NumVector3 direction = AimDirection(
+            player.Movement.Yaw - bulletPunch.Yaw,
+            player.Movement.Pitch + bulletPunch.Pitch);
+
+        // Kamera kick-i: atışdan SONRAKI sapma — oyunçu silahın qalxdığını görür.
+        RecoilPunch punch = player.Weapon.Punch;
+
+        ShotResult result = _hitValidator.Evaluate(player, direction, _players.Values, _serverTimeMs);
+
+        EmitSignal(
+            SignalName.ShotFired,
+            player.PeerId,
+            ToGodot(result.Origin),
+            ToGodot(result.End),
+            punch.Pitch,
+            punch.Yaw,
+            player.Weapon.ShotIndex - 1,
+            result.VictimPeerId is not null);
+
+        EmitSignal(SignalName.WeaponStateChanged, player.PeerId);
 
         if (result.VictimPeerId is not { } victimId || !_players.TryGetValue(victimId, out ServerPlayer? victim))
         {
-            return result;
+            return;
         }
 
         victim.ApplyDamage(result.HealthDamage, result.ArmorDamage, _serverTimeMs);
-        shooter.State.DamageDealt += result.HealthDamage;
+        player.State.DamageDealt += result.HealthDamage;
 
         if (result.HitBox == HitBox.Head)
         {
-            shooter.State.Headshots++;
+            player.State.Headshots++;
         }
 
         if (result.Killed)
         {
-            shooter.State.Kills++;
-            GD.Print($"[GameWorld] {shooter.State.Username} → {victim.State.Username} ({result.HitBox})");
+            player.State.Kills++;
+            GD.Print($"[GameWorld] {player.State.Username} → {victim.State.Username} ({result.HitBox})");
         }
 
-        return result;
+        EmitSignal(
+            SignalName.PlayerDamaged,
+            victimId,
+            player.PeerId,
+            (int)result.HitBox,
+            result.HealthDamage,
+            result.Killed);
     }
+
+    /// <summary>Yaw/pitch dərəcələrindən Godot konvensiyasında istiqamət vektoru.</summary>
+    internal static NumVector3 AimDirection(float yawDegrees, float pitchDegrees)
+    {
+        float yaw = yawDegrees * MathF.PI / 180f;
+        float pitch = pitchDegrees * MathF.PI / 180f;
+
+        float cosPitch = MathF.Cos(pitch);
+        return NumVector3.Normalize(new NumVector3(
+            -MathF.Sin(yaw) * cosPitch,
+            MathF.Sin(pitch),
+            -MathF.Cos(yaw) * cosPitch));
+    }
+
+    [Signal]
+    public delegate void ShotFiredEventHandler(
+        int shooterPeerId, Vector3 origin, Vector3 end, float punchPitch, float punchYaw, int shotIndex, bool hit);
+
+    [Signal]
+    public delegate void PlayerDamagedEventHandler(
+        int victimPeerId, int attackerPeerId, int hitBox, int healthDamage, bool killed);
+
+    [Signal]
+    public delegate void WeaponStateChangedEventHandler(int peerId);
 
     /// <summary>PRD 48 - Pozuntu bal toplayır; avtomatik permanent ban yoxdur.</summary>
     public static void RegisterViolation(ServerPlayer player, Violation violation)
@@ -160,20 +245,31 @@ public sealed partial class GameWorld : Node3D
         }
     }
 
-    private void SimulatePlayer(ServerPlayer player, float delta)
+    /// <summary>
+    /// Oyunçunun bu tick-dəki input-larını simulyasiya edir və
+    /// <b>sonuncu</b> input-un düymə vəziyyətini qaytarır.
+    ///
+    /// Silah kadensiyası tick başına bir dəfə hesablanır: bir tick-də bir neçə
+    /// input emal olunsa belə, silah öz sürətindən tez atəş aça bilməz.
+    /// </summary>
+    private InputButtons SimulatePlayer(ServerPlayer player, float delta)
     {
+        InputButtons lastButtons = InputButtons.None;
+
         if (!player.State.IsAlive)
         {
-            return;
+            return lastButtons;
         }
 
         if (!_bodies.TryGetValue(player.PeerId, out CharacterBody3D? body))
         {
-            return;
+            return lastButtons;
         }
 
         foreach (InputCommand input in player.DequeueInputsForTick())
         {
+            lastButtons = input.Buttons;
+
             NumVector3 before = player.Movement.Position;
 
             // PRD 43 - Client ilə EYNİ simulyasiya kodu.
@@ -196,6 +292,8 @@ public sealed partial class GameWorld : Node3D
                 body.GlobalPosition = ToGodot(before);
             }
         }
+
+        return lastButtons;
     }
 
     private void BroadcastSnapshot()

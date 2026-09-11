@@ -1,5 +1,4 @@
 using Godot;
-using NaxcivanCS.Server.Damage;
 using NaxcivanCS.Server.Players;
 using NaxcivanCS.Server.ServerCore;
 using NaxcivanCS.Shared.Constants;
@@ -25,8 +24,13 @@ public sealed partial class NetworkServer : Node
 
     public void Attach(GameWorld world)
     {
+        ArgumentNullException.ThrowIfNull(world);
+
         _world = world;
         world.SnapshotReady += OnSnapshotReady;
+        world.ShotFired += OnShotFired;
+        world.PlayerDamaged += OnPlayerDamaged;
+        world.WeaponStateChanged += OnWeaponStateChanged;
     }
 
     public Error Listen(int port = GameConstants.DefaultServerPort, int maxPlayers = GameConstants.MaxPlayers)
@@ -142,38 +146,53 @@ public sealed partial class NetworkServer : Node
             return;
         }
 
+        // PRD 45 - Lag compensation üçün latency ölçüsü.
         player.LatencyMs = _peer?.GetPeer(senderId)?.GetStatistic(ENetPacketPeer.PeerStatistic.RoundTripTime) / 2.0 ?? 0;
-        player.EnqueueInput(input);
 
-        // PRD 46 - Atəş də sadəcə bir input-dur; nəticəni server hesablayır.
-        if (!input.Buttons.HasFlag(InputButtons.PrimaryFire))
+        // PRD 46 - Client-dən gələn HƏR ŞEY buradan keçir: yalnız növbəyə qoyulur.
+        // Atəş açılıb-açılmayacağına GameWorld öz tick-ində qərar verir.
+        player.EnqueueInput(input);
+    }
+
+    /// <summary>PRD 17 - Atəş hadisəsi: muzzle flash, tracer, kamera kick.</summary>
+    private void OnShotFired(
+        int shooterPeerId, Vector3 origin, Vector3 end, float punchPitch, float punchYaw, int shotIndex, bool hit)
+    {
+        byte[] packet = PacketCodec.EncodeShotFired(
+            shooterPeerId,
+            new System.Numerics.Vector3(origin.X, origin.Y, origin.Z),
+            new System.Numerics.Vector3(end.X, end.Y, end.Z),
+            punchPitch,
+            punchYaw,
+            shotIndex,
+            hit);
+
+        // Atəş hadisələri unreliable gedir — itən bir muzzle flash oyunu pozmur,
+        // amma gecikmiş effekt pozur (PRD 44 məntiqi).
+        Broadcast(packet, reliable: false);
+    }
+
+    private void OnPlayerDamaged(int victimPeerId, int attackerPeerId, int hitBox, int healthDamage, bool killed)
+    {
+        // Damage reliable gedir: itən kill event-i scoreboard-u pozar.
+        Broadcast(
+            PacketCodec.EncodeDamage(victimPeerId, attackerPeerId, (HitBox)hitBox, healthDamage, killed),
+            reliable: true);
+    }
+
+    /// <summary>PRD 78 - Şarjor yalnız sahibinə göndərilir.</summary>
+    private void OnWeaponStateChanged(int peerId)
+    {
+        if (_world is null || !_world.Players.TryGetValue(peerId, out ServerPlayer? player))
         {
-            player.ShotsInBurst = 0;
             return;
         }
 
-        ShotResult result = _world.ProcessShot(senderId, AimDirection(input.YawDegrees, input.PitchDegrees));
-
-        if (result is { Accepted: true, VictimPeerId: { } victimId, HealthDamage: > 0 })
-        {
-            byte[] damagePacket = PacketCodec.EncodeDamage(
-                victimId, senderId, result.HitBox, result.HealthDamage, result.Killed);
-
-            Broadcast(damagePacket, reliable: true);
-        }
-    }
-
-    /// <summary>Yaw/pitch dərəcələrindən Godot konvensiyasında istiqamət vektoru.</summary>
-    internal static System.Numerics.Vector3 AimDirection(float yawDegrees, float pitchDegrees)
-    {
-        float yaw = yawDegrees * MathF.PI / 180f;
-        float pitch = pitchDegrees * MathF.PI / 180f;
-
-        float cosPitch = MathF.Cos(pitch);
-        return System.Numerics.Vector3.Normalize(new System.Numerics.Vector3(
-            -MathF.Sin(yaw) * cosPitch,
-            MathF.Sin(pitch),
-            -MathF.Cos(yaw) * cosPitch));
+        Send(
+            peerId,
+            PacketCodec.EncodeWeaponState(
+                player.Weapon.AmmoInMagazine, player.Weapon.ReserveAmmo, player.Weapon.IsReloading),
+            reliable: false);
     }
 
     private void OnSnapshotReady(byte[] payload)
