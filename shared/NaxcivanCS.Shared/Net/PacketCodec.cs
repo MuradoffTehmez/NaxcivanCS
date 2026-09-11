@@ -313,6 +313,72 @@ public static class PacketCodec
             (RoundEndReason)payload[11]);
     }
 
+    // ------------------------------------------------------------------ Bomb
+
+    /// <summary>PRD 8 - Site adını bir bayta yığır; 0 = yerləşdirilməyib.</summary>
+    private static byte EncodeSite(string site) => site switch
+    {
+        "A" => 1,
+        "B" => 2,
+        _ => 0,
+    };
+
+    private static string DecodeSite(byte value) => value switch
+    {
+        1 => "A",
+        2 => "B",
+        _ => string.Empty,
+    };
+
+    /// <summary>
+    /// PRD 8 - Bomba vəziyyəti.
+    /// [state u8][carrierPeerId i32][x f32][y f32][z f32]
+    /// [plantProgress f32][defuseProgress f32][site u8]
+    /// </summary>
+    public static byte[] EncodeBombState(
+        BombState state,
+        int carrierPeerId,
+        System.Numerics.Vector3 position,
+        float plantProgress,
+        float defuseProgress,
+        string plantedSite)
+    {
+        var payload = new byte[1 + 4 + 12 + 4 + 4 + 1];
+        Span<byte> span = payload;
+
+        span[0] = (byte)state;
+        BinaryPrimitives.WriteInt32LittleEndian(span.Slice(1, 4), carrierPeerId);
+        BinaryPrimitives.WriteSingleLittleEndian(span.Slice(5, 4), position.X);
+        BinaryPrimitives.WriteSingleLittleEndian(span.Slice(9, 4), position.Y);
+        BinaryPrimitives.WriteSingleLittleEndian(span.Slice(13, 4), position.Z);
+        BinaryPrimitives.WriteSingleLittleEndian(span.Slice(17, 4), Math.Clamp(plantProgress, 0f, 1f));
+        BinaryPrimitives.WriteSingleLittleEndian(span.Slice(21, 4), Math.Clamp(defuseProgress, 0f, 1f));
+        span[25] = EncodeSite(plantedSite);
+
+        return Wrap(MessageType.BombStateChanged, payload);
+    }
+
+    public static (BombState State, int CarrierPeerId, System.Numerics.Vector3 Position,
+        float PlantProgress, float DefuseProgress, string PlantedSite)
+        DecodeBombState(ReadOnlySpan<byte> payload)
+    {
+        if (payload.Length < 26)
+        {
+            throw new ArgumentException("BombState faydalı yükü natamamdır.", nameof(payload));
+        }
+
+        return (
+            (BombState)payload[0],
+            BinaryPrimitives.ReadInt32LittleEndian(payload.Slice(1, 4)),
+            new System.Numerics.Vector3(
+                BinaryPrimitives.ReadSingleLittleEndian(payload.Slice(5, 4)),
+                BinaryPrimitives.ReadSingleLittleEndian(payload.Slice(9, 4)),
+                BinaryPrimitives.ReadSingleLittleEndian(payload.Slice(13, 4))),
+            BinaryPrimitives.ReadSingleLittleEndian(payload.Slice(17, 4)),
+            BinaryPrimitives.ReadSingleLittleEndian(payload.Slice(21, 4)),
+            DecodeSite(payload[25]));
+    }
+
     // ------------------------------------------------------------- Scoreboard
 
     /// <summary>Scoreboard sətrinin dəyişməz hissəsinin ölçüsü (ad istisna).</summary>

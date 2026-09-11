@@ -27,6 +27,34 @@ public sealed class ServerPlayer
     /// <summary>Buferdə saxlanan maksimum input sayı.</summary>
     private const int MaxQueuedInputs = 32;
 
+    /// <summary>
+    /// PRD 43 - Sonuncu emal olunmuş input-un düymələri.
+    ///
+    /// Input-lar unreliable UDP ilə gəlir, ona görə bəzi tick-lərdə növbə boş
+    /// olur. Belə tick-i "düymə buraxıldı" kimi oxumaq basılı saxlama tələb
+    /// edən əməliyyatları (plant/defuse) qırır, ona görə sonuncu vəziyyət
+    /// saxlanılır. <see cref="LastInputServerTimeMs"/> ilə birlikdə istifadə
+    /// olunmalıdır: susmuş client-in düyməsi əbədi basılı qalmamalıdır.
+    /// </summary>
+    public InputButtons LastButtons { get; private set; }
+
+    /// <summary>Sonuncu input-un emal olunduğu server vaxtı, ms.</summary>
+    public double LastInputServerTimeMs { get; private set; }
+
+    /// <summary>Emal olunmuş input-un düymə vəziyyətini qeyd edir.</summary>
+    public void RecordProcessedInput(InputCommand input, double serverTimeMs)
+    {
+        LastButtons = input.Buttons;
+        LastInputServerTimeMs = serverTimeMs;
+    }
+
+    /// <summary>
+    /// Basılı saxlanan düymə hələ etibarlıdırmı? Client susubsa düymə
+    /// buraxılmış sayılır.
+    /// </summary>
+    public bool IsHolding(InputButtons button, double serverTimeMs, double graceMs)
+        => LastButtons.HasFlag(button) && serverTimeMs - LastInputServerTimeMs <= graceMs;
+
     public ServerPlayer(int peerId, string username, Team team, Vector3 spawnPosition, float spawnYaw, WeaponData weapon)
     {
         PeerId = peerId;
