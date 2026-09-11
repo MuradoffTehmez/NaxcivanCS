@@ -9,6 +9,8 @@
 - Prediction, reconciliation, interpolation və lag compensation başlanğıcı.
 - Server kadensiyası, ammo/reload və deterministik recoil.
 - Silah view model-i, tracer, muzzle flash, hitmarker və HUD.
+- Prosedural audio: atəş, reload, impact və səth əsaslı spatial addım səsləri.
+- Round sistemi: Freeze/Buy/Active/RoundEnd, MR12 skor, side swap, round economy, scoreboard.
 - Backend versiya/registry skeleti; CI və iki client smoke testi.
 
 ## Növbəti mərhələ — core etibarlılığı
@@ -19,11 +21,12 @@
 - [ ] Server config loader və faktiki spread/movement balans inteqrasiyası.
 - [ ] 10 client, latency/loss və 60 dəqiqəlik sabitlik ölçümü.
 - [ ] Əl ilə gunplay hissinin, render və səsin yoxlanması.
+- [ ] Round taymerlərinin server config-dən oxunması (hazırda `GameConstants`-dadır).
 
 ## Multiplayer və Bomb Mode
 
-- [ ] Tam 5v5 komanda lifecycle-ı, scoreboard, round reset.
-- [ ] MR12, side swap və test olunmuş overtime.
+- [x] Round reset, scoreboard və komanda lifecycle-ı (5v5 yük altında sınanmayıb).
+- [x] MR12 skor və side swap. **Overtime** yalnız vəziyyət kimi qeyd olunur — PRD-dəki 3 hücum / 3 müdafiə formatı hələ yoxdur.
 - [ ] Plant/defuse, A/B site, victory şərtləri.
 - [ ] Buy menu, inventory, weapon switch/drop/pickup.
 - [ ] Economy inteqrasiyası, grenade və server smoke/flash.

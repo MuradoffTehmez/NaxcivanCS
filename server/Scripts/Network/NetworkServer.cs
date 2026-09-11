@@ -31,6 +31,8 @@ public sealed partial class NetworkServer : Node
         world.ShotFired += OnShotFired;
         world.PlayerDamaged += OnPlayerDamaged;
         world.WeaponStateChanged += OnWeaponStateChanged;
+        world.RoundStateChanged += OnRoundStateChanged;
+        world.ScoreboardChanged += OnScoreboardChanged;
     }
 
     public Error Listen(int port = GameConstants.DefaultServerPort, int maxPlayers = GameConstants.MaxPlayers)
@@ -178,6 +180,38 @@ public sealed partial class NetworkServer : Node
         Broadcast(
             PacketCodec.EncodeDamage(victimPeerId, attackerPeerId, (HitBox)hitBox, healthDamage, killed),
             reliable: true);
+    }
+
+    /// <summary>
+    /// PRD 10, 128 - Round vəziyyəti hamıya gedir.
+    /// Reliable: itən faza dəyişikliyi client-i yanlış vəziyyətdə saxlayardı.
+    /// </summary>
+    private void OnRoundStateChanged(
+        int phase, int matchState, float timeRemaining, int roundNumber,
+        int alphaScore, int bravoScore, int roundWinner, int endReason)
+    {
+        Broadcast(
+            PacketCodec.EncodeRoundState(
+                (RoundPhase)phase,
+                (MatchState)matchState,
+                timeRemaining,
+                roundNumber,
+                alphaScore,
+                bravoScore,
+                (Team)roundWinner,
+                (RoundEndReason)endReason),
+            reliable: true);
+    }
+
+    /// <summary>PRD 128 - Scoreboard round sonunda və round başında yenilənir.</summary>
+    private void OnScoreboardChanged()
+    {
+        if (_world is null)
+        {
+            return;
+        }
+
+        Broadcast(PacketCodec.EncodeScoreboard(_world.BuildScoreboard()), reliable: true);
     }
 
     /// <summary>PRD 78 - Şarjor yalnız sahibinə göndərilir.</summary>

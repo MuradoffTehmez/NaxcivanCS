@@ -18,10 +18,13 @@ NaxcivanCS Naxçıvan memarlığı və coğrafiyasından ilhamlanan, Godot 4 .NE
 | Hərəkət | Lokal prediction, server reconciliation, uzaq oyunçu interpolation |
 | Gunplay | AR-9 Qartal, server kadensiyası, ammo, manual/avtomatik reload, deterministik recoil |
 | Vizual feedback | Prosedural silah modeli, muzzle flash, tracer, hitmarker, crosshair, HUD |
-| Damage və respawn | Server hitscan, 200 ms tarixçə, 100 HP, təxminən 3 saniyəlik respawn |
+| Damage və respawn | Server hitscan, 200 ms tarixçə, 100 HP; respawn round başında |
+| Round sistemi | Freeze/Buy/Active/RoundEnd, MR12 skor, side swap, round economy |
+| Audio | Prosedural sintez: atəş, reload, impact, səth əsaslı spatial addımlar |
+| Scoreboard | Tab ilə açılan server mənbəli cədvəl, round HUD və faza banneri |
 | Backend | Health, versiya və yaddaşda saxlanan server registry |
 | Shared qaydalar | Silah kataloqu, damage, economy, match və suspicion qaydaları |
-| Hələ tamamlanmayıb | Bomb/Defuse, tam raund, alış, inventory, matchmaking, hesablar, səs, real xəritələr |
+| Hələ tamamlanmayıb | Bomb/Defuse, alış menyusu, inventory, matchmaking, hesablar, voice chat, real xəritələr |
 
 **Prototipin mühüm məhdudiyyətləri:** hitscan divar örtüyünü yoxlamır; friendly fire filtri qoşulmayıb; server_default.json runtime loader-ə bağlanmayıb. [Ətraflı məhdudiyyətlər](docs/KNOWN_ISSUES.md).
 
@@ -57,7 +60,8 @@ Godot avtomatik tapılmasa `GODOT_BIN`-i executable yoluna təyin edin. [Quraşd
 | R | Reload |
 | Space | Tullanmaq |
 | Ctrl | Çömbəlmək |
-| Shift | Yavaş hərəkət |
+| Shift | Yavaş hərəkət (səssiz) |
+| Tab | Scoreboard |
 | Esc | Kursoru buraxmaq |
 
 Tab, B, E və G üçün input adları olsa da, tam scoreboard, alış, interaction və drop axınları hazır deyil. Shift üçün footstep səsi sistemi hələ yoxdur.
