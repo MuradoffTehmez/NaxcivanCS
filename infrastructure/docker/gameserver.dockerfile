@@ -5,7 +5,7 @@
 ARG GODOT_VERSION=4.7.2
 
 # ---------- 1) Godot headless export ----------
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG GODOT_VERSION
 ENV DEBIAN_FRONTEND=noninteractive
 
