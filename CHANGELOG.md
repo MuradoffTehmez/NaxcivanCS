@@ -6,6 +6,22 @@ Bu jurnal tətbiq edilmiş dəyişiklikləri məhsulun gələcək planlarından 
 
 Bu jurnaldakı heç bir yazı prototipin production-ready olması demək deyil.
 
+## Buraxılmamış
+
+### Əlavə edildi
+
+- **Round sistemi (PRD 9, 10, 128).** `MatchDirector` — shared-də saf state machine: Freeze → Buy → Active → RoundEnd axını, elimination və vaxt bitməsi ilə round qalibiyyəti, MR12 skoru, yarı vaxtda tərəf dəyişmə, 12:12-də overtime vəziyyəti.
+- Round başında hamı respawn olur, silahlar dolur, mövqelər sıfırlanır.
+- Freeze time-da hərəkət bloklanır (baxış bucağı işləyir); atəş yalnız aktiv roundda mümkündür.
+- Round sonu pulu: qalibə sabit mükafat, uduzana ardıcıl uduzma bonusu (PRD 25, 26).
+- `RoundStateChanged` və `Scoreboard` şəbəkə mesajları.
+- Round HUD: taymer, komanda skorları, faza banneri. Tab ilə scoreboard (PRD 128).
+
+### Dəyişdi
+
+- **Ölüm artıq daimidir** — 3 saniyəlik avtomatik respawn round sistemi ilə əvəz olundu.
+- İstifadə olunmayan `RoundController` silindi; round məntiqi `MatchDirector`-dədir.
+
 ## 0.3.0 — 2026-09-11
 
 ### Əlavə edildi

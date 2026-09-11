@@ -37,6 +37,14 @@ public sealed partial class NetworkClient : Node
     public delegate void WeaponStateReceivedEventHandler(int magazine, int reserve, bool reloading);
 
     [Signal]
+    public delegate void RoundStateReceivedEventHandler(
+        int phase, int matchState, float timeRemaining, int roundNumber,
+        int alphaScore, int bravoScore, int roundWinner, int endReason);
+
+    [Signal]
+    public delegate void ScoreboardReceivedEventHandler(byte[] payload);
+
+    [Signal]
     public delegate void DisconnectedEventHandler();
 
     /// <summary>Serverin bizə verdiyi peer id — handshake-dən sonra dolur.</summary>
@@ -192,6 +200,23 @@ public sealed partial class NetworkClient : Node
                     hit);
                 break;
             }
+
+            case MessageType.RoundStateChanged:
+            {
+                (RoundPhase phase, MatchState matchState, float timeRemaining, int roundNumber,
+                    int alphaScore, int bravoScore, Team roundWinner, RoundEndReason endReason) =
+                        PacketCodec.DecodeRoundState(payload);
+
+                EmitSignal(
+                    SignalName.RoundStateReceived,
+                    (int)phase, (int)matchState, timeRemaining, roundNumber,
+                    alphaScore, bravoScore, (int)roundWinner, (int)endReason);
+                break;
+            }
+
+            case MessageType.Scoreboard:
+                EmitSignal(SignalName.ScoreboardReceived, payload.ToArray());
+                break;
 
             case MessageType.WeaponState:
             {

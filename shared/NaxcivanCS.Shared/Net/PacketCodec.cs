@@ -258,6 +258,145 @@ public static class PacketCodec
         BinaryPrimitives.ReadSingleLittleEndian(span.Slice(4, 4)),
         BinaryPrimitives.ReadSingleLittleEndian(span.Slice(8, 4)));
 
+    // ------------------------------------------------------------ Round state
+
+    /// <summary>
+    /// PRD 10, 128 - Round və match vəziyyəti.
+    /// [phase u8][matchState u8][timeRemaining f32][roundNumber u16]
+    /// [alphaScore u8][bravoScore u8][roundWinner u8][endReason u8]
+    /// </summary>
+    public static byte[] EncodeRoundState(
+        RoundPhase phase,
+        MatchState matchState,
+        float timeRemaining,
+        int roundNumber,
+        int alphaScore,
+        int bravoScore,
+        Team roundWinner,
+        RoundEndReason endReason)
+    {
+        var payload = new byte[1 + 1 + 4 + 2 + 1 + 1 + 1 + 1];
+        Span<byte> span = payload;
+
+        span[0] = (byte)phase;
+        span[1] = (byte)matchState;
+        BinaryPrimitives.WriteSingleLittleEndian(span.Slice(2, 4), MathF.Max(0f, timeRemaining));
+        BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(6, 2), (ushort)Math.Clamp(roundNumber, 0, ushort.MaxValue));
+        span[8] = (byte)Math.Clamp(alphaScore, 0, 255);
+        span[9] = (byte)Math.Clamp(bravoScore, 0, 255);
+        span[10] = (byte)roundWinner;
+        span[11] = (byte)endReason;
+
+        return Wrap(MessageType.RoundStateChanged, payload);
+    }
+
+    public static (RoundPhase Phase, MatchState MatchState, float TimeRemaining, int RoundNumber,
+        int AlphaScore, int BravoScore, Team RoundWinner, RoundEndReason EndReason)
+        DecodeRoundState(ReadOnlySpan<byte> payload)
+    {
+        if (payload.Length < 12)
+        {
+            throw new ArgumentException("RoundState faydalı yükü natamamdır.", nameof(payload));
+        }
+
+        return (
+            (RoundPhase)payload[0],
+            (MatchState)payload[1],
+            BinaryPrimitives.ReadSingleLittleEndian(payload.Slice(2, 4)),
+            BinaryPrimitives.ReadUInt16LittleEndian(payload.Slice(6, 2)),
+            payload[8],
+            payload[9],
+            (Team)payload[10],
+            (RoundEndReason)payload[11]);
+    }
+
+    // ------------------------------------------------------------- Scoreboard
+
+    /// <summary>Scoreboard sətrinin dəyişməz hissəsinin ölçüsü (ad istisna).</summary>
+    private const int ScoreboardEntryHeaderSize = 4 + 1 + 2 + 2 + 2 + 1 + 1;
+
+    /// <summary>PRD 69, 128 - Scoreboard sətri.</summary>
+    public readonly record struct ScoreboardEntry(
+        int PeerId, string Username, Team Team, int Kills, int Deaths, int Money, bool IsAlive);
+
+    /// <summary>
+    /// PRD 128 - Scoreboard. Nadir göndərilir (round sonu), ona görə
+    /// username-lər hər dəfə daxil edilir — ayrıca ad reyestri lazım deyil.
+    /// </summary>
+    public static byte[] EncodeScoreboard(IReadOnlyList<ScoreboardEntry> entries)
+    {
+        ArgumentNullException.ThrowIfNull(entries);
+
+        var buffer = new List<byte>(64) { (byte)Math.Min(entries.Count, 255) };
+
+        // CA2014 - stackalloc dövrədən kənarda: sətir sayı 255-ə qədər ola bilər.
+        Span<byte> fixedPart = stackalloc byte[ScoreboardEntryHeaderSize];
+
+        foreach (ScoreboardEntry entry in entries.Take(255))
+        {
+            byte[] name = Encoding.UTF8.GetBytes(entry.Username);
+            if (name.Length > MaxUsernameBytes)
+            {
+                name = name[..MaxUsernameBytes];
+            }
+
+            BinaryPrimitives.WriteInt32LittleEndian(fixedPart[..4], entry.PeerId);
+            fixedPart[4] = (byte)entry.Team;
+            BinaryPrimitives.WriteUInt16LittleEndian(fixedPart.Slice(5, 2), (ushort)Math.Clamp(entry.Kills, 0, ushort.MaxValue));
+            BinaryPrimitives.WriteUInt16LittleEndian(fixedPart.Slice(7, 2), (ushort)Math.Clamp(entry.Deaths, 0, ushort.MaxValue));
+            BinaryPrimitives.WriteUInt16LittleEndian(fixedPart.Slice(9, 2), (ushort)Math.Clamp(entry.Money, 0, ushort.MaxValue));
+            fixedPart[11] = entry.IsAlive ? (byte)1 : (byte)0;
+            fixedPart[12] = (byte)name.Length;
+
+            buffer.AddRange(fixedPart.ToArray());
+            buffer.AddRange(name);
+        }
+
+        return Wrap(MessageType.Scoreboard, buffer.ToArray());
+    }
+
+    public static IReadOnlyList<ScoreboardEntry> DecodeScoreboard(ReadOnlySpan<byte> payload)
+    {
+        if (payload.Length < 1)
+        {
+            throw new ArgumentException("Scoreboard faydalı yükü boşdur.", nameof(payload));
+        }
+
+        int count = payload[0];
+        var entries = new List<ScoreboardEntry>(count);
+        int offset = 1;
+
+        for (int i = 0; i < count; i++)
+        {
+            if (offset + ScoreboardEntryHeaderSize > payload.Length)
+            {
+                throw new ArgumentException("Scoreboard sətri natamamdır.", nameof(payload));
+            }
+
+            int peerId = BinaryPrimitives.ReadInt32LittleEndian(payload.Slice(offset, 4));
+            var team = (Team)payload[offset + 4];
+            int kills = BinaryPrimitives.ReadUInt16LittleEndian(payload.Slice(offset + 5, 2));
+            int deaths = BinaryPrimitives.ReadUInt16LittleEndian(payload.Slice(offset + 7, 2));
+            int money = BinaryPrimitives.ReadUInt16LittleEndian(payload.Slice(offset + 9, 2));
+            bool alive = payload[offset + 11] != 0;
+            int nameLength = payload[offset + 12];
+
+            offset += ScoreboardEntryHeaderSize;
+
+            if (offset + nameLength > payload.Length)
+            {
+                throw new ArgumentException("Scoreboard username sahəsi natamamdır.", nameof(payload));
+            }
+
+            string username = Encoding.UTF8.GetString(payload.Slice(offset, nameLength));
+            offset += nameLength;
+
+            entries.Add(new ScoreboardEntry(peerId, username, team, kills, deaths, money, alive));
+        }
+
+        return entries;
+    }
+
     // ------------------------------------------------------------ Damage events
 
     /// <summary>[victimPeerId i32][attackerPeerId i32][hitBox u8][healthDamage u16][killed u8]</summary>
