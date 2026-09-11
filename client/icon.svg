@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!--
+    NaxcivanCS - orijinal ikon (PRD 141, 142, 144).
+    Vizual dil: dark / stone / copper / red accents.
+    Naxcivan memarligindaki geometrik ornamentden ilham alinib.
+    Hec bir Counter-Strike / Valve elementi istifade edilmeyib.
+  -->
+  <defs>
+    <linearGradient id="stone" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b2a28"/>
+      <stop offset="1" stop-color="#141312"/>
+    </linearGradient>
+    <linearGradient id="copper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d98b45"/>
+      <stop offset="1" stop-color="#a3542a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="128" height="128" rx="24" fill="url(#stone)"/>
+
+  <!-- Geometrik ornament: ic-ice sekkizbucaqli -->
+  <g fill="none" stroke-linejoin="round">
+    <polygon points="64,16 91,27 102,54 91,81 64,92 37,81 26,54 37,27"
+             stroke="#5a5551" stroke-width="3"/>
+    <polygon points="64,30 81,37 88,54 81,71 64,78 47,71 40,54 47,37"
+             stroke="#a3542a" stroke-width="3"/>
+  </g>
+
+  <!-- Merkezdeki qirmizi akzent -->
+  <circle cx="64" cy="54" r="9" fill="#c0392b"/>
+
+  <!-- NCS monoqrami -->
+  <text x="64" y="116" text-anchor="middle"
+        font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700"
+        fill="#d98b45" letter-spacing="2">NCS</text>
+</svg>
