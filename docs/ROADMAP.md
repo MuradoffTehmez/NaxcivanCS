@@ -17,20 +17,39 @@ PRD 126–138 əsasında. Hər faza öz acceptance kriteriyası ilə bağlıdır
 - [x] Docker infrastrukturu (PRD 99–101)
 - [x] Lokalizasiya faylları (PRD 118)
 - [ ] Art direction sənədi
-- [ ] Movement prototipi
 
-## Phase 1 — Prototype 0.1  (PRD 127, 152)
+## Phase 1 — Prototype 0.1  🟡 (PRD 127, 152)
 
 Milestone tələbləri:
 
-- [ ] 1 test map (block-out)
-- [ ] 2 oyunçu, ENet üzərindən
-- [ ] Movement + mouse look
-- [ ] 1 tüfəng, atəş
-- [ ] Health / damage / death / respawn
-- [ ] Ping göstəricisi
+- [x] 1 test map (block-out: döşəmə, 3 örtük, 4 divar)
+- [x] 2 oyunçu, ENet üzərindən — **e2e testdə təsdiqləndi**
+- [x] Movement + mouse look (client prediction + server reconciliation)
+- [x] 1 tüfəng, atəş (server-authoritative hitscan, lag compensation)
+- [x] Health / damage / death / respawn
+- [x] Ping göstəricisi
+- [ ] Silah view model və atəş animasiyası
+- [ ] Atəş/vurulma səs və vizual effektləri
+- [ ] Əllə oynanış testi (`--headless` deyil, real input ilə)
 
-**Sual:** *"Gunplay fun-dırmı?"* — cavab "yox"dursa, növbəti fazaya keçilmir.
+### Nə işləyir
+
+`tools/e2e-smoke-test.sh` hər CI run-ında yoxlayır:
+
+```text
+Dedicated server qalxır (64 tick, 8 silah config-dən yüklənir)
+  ↓
+2 client qoşulur, handshake protokol versiyası ilə yoxlanılır
+  ↓
+Komandalar avtomatik bölünür (Alpha / Bravo)
+  ↓
+~32 Hz snapshot axını — 6 saniyədə hər client ~188 snapshot alır
+  ↓
+Təmiz disconnect, 0 ERROR, 0 WARNING
+```
+
+**Sual:** *"Gunplay fun-dırmı?"* — bu, yalnız əllə oynanış testindən sonra
+cavablandırıla bilər. Texniki boru kəməri hazırdır; his hələ yoxlanmayıb.
 
 ## Phase 2 — Multiplayer Core  (PRD 128)
 
@@ -90,16 +109,16 @@ Milestone tələbləri:
 
 | # | Kriteriya | Status |
 |---:|---|---|
-| 1 | 10 oyunçu serverə qoşula bilir | ⬜ |
+| 1 | 10 oyunçu serverə qoşula bilir | 🟡 2 oyunçu e2e-də təsdiqləndi, 10 sınanmayıb |
 | 2 | 5v5 stabil oynanılır | ⬜ |
-| 3 | Server-authoritative movement işləyir | ⬜ |
-| 4 | Weapon firing düzgün sync olunur | ⬜ |
-| 5 | Hit registration sabitdir | ⬜ |
-| 6 | Bomb plant/defuse işləyir | ⬜ |
-| 7 | Round reset problemsizdir | ⬜ |
-| 8 | Economy düzgün hesablanır | 🟡 qaydalar + testlər hazırdır |
-| 9 | Server 60+ tick stabil işləyir | ⬜ |
-| 10 | 60 dəqiqəlik testdə critical crash yoxdur | ⬜ |
+| 3 | Server-authoritative movement işləyir | ✅ prediction + reconciliation işləyir |
+| 4 | Weapon firing düzgün sync olunur | 🟡 server hesablayır, vizual/audio yoxdur |
+| 5 | Hit registration sabitdir | 🟡 lag comp + hitscan hazır, ping altında sınanmayıb |
+| 6 | Bomb plant/defuse işləyir | ⬜ Phase 3 |
+| 7 | Round reset problemsizdir | ⬜ Phase 2 |
+| 8 | Economy düzgün hesablanır | 🟡 qaydalar + testlər hazırdır, bağlanmayıb |
+| 9 | Server 60+ tick stabil işləyir | 🟡 64 tick qalxır, yük altında ölçülməyib |
+| 10 | 60 dəqiqəlik testdə critical crash yoxdur | ⬜ uzun test aparılmayıb |
 
 ## Xəritələr (PRD 31)
 

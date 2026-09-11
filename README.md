@@ -2,7 +2,7 @@
 
 > Competitive Multiplayer Tactical FPS — Godot 4 + C#, server-authoritative dedicated server.
 
-**Status:** Pre-production → Phase 0/1 (Prototype 0.1)
+**Status:** Phase 1 — Prototype 0.1 (oynanıla bilən şəbəkə vertical slice)
 **Versiya:** 0.1.0
 **Sənəd:** [docs/PRD.md](docs/PRD.md)
 
@@ -67,10 +67,16 @@ Dedicated serveri lokal işə salmaq (PRD 87):
 godot --headless --path server -- --port 27015 --map NC_Qala
 ```
 
-Client-i editor-da açmaq:
+Client-i işə salmaq (serverə qoşulur):
 
 ```bash
-godot --path client
+godot --path client -- --server 127.0.0.1 --port 27015 --name Tahmaz
+```
+
+End-to-end yoxlama (server + 2 client, headless):
+
+```bash
+GODOT_BIN=/path/to/godot tools/e2e-smoke-test.sh
 ```
 
 Backend API:
@@ -84,6 +90,21 @@ Backend + PostgreSQL + Redis (Docker):
 ```bash
 cd infrastructure && cp .env.example .env && docker compose up -d postgres redis backend
 ```
+
+## Hazırda nə işləyir
+
+| Sistem | Vəziyyət |
+|---|---|
+| ENet/UDP şəbəkə, binar protokol | ✅ 2 client e2e testdə |
+| Server-authoritative movement | ✅ prediction + reconciliation |
+| Hitscan + lag compensation (200 ms) | ✅ server hesablayır |
+| Damage, armor, hitbox multiplier | ✅ |
+| Death / respawn | ✅ |
+| Anti-cheat: fire-rate, speed, ox klampı | ✅ suspicion scoring ilə |
+| Snapshot interpolation | ✅ ~32 Hz |
+| HUD: can, zireh, ping, crosshair | ✅ prototype səviyyəsi |
+| Silah modelləri, səs, effektlər | ⬜ |
+| Round sistemi, bomba, economy | ⬜ Phase 2–3 |
 
 ## Development prioriteti (PRD 151)
 
