@@ -1,6 +1,6 @@
 # Yol xəritəsi
 
-0.2.2 buraxılışı hələ prototip mərhələsindədir. Versiya adı mərhələlərin hamısının bitdiyini göstərmir. PRD-dəki “Version 1.0” bölməsi tarixi məhsul milestone adıdır.
+Cari stable buraxılış hələ prototip mərhələsindədir. Versiya adı mərhələlərin hamısının bitdiyini göstərmir. PRD-dəki “Version 1.0” bölməsi tarixi məhsul milestone adıdır.
 
 ## Hazır baza
 

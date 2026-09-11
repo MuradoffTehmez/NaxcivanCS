@@ -1,5 +1,7 @@
 # NaxcivanCS — tətbiq edilmiş arxitektura
 
+> Bu sənəd 0.2.2 tarixi snapshot-ıdır. Cari stable və unreleased vəziyyət üçün [README](../README.md) və [CHANGELOG](../CHANGELOG.md) əsasdır.
+
 0.2.2 prototipinin arxitekturası. Məhsul hədəfi [PRD](PRD.md), tətbiq boşluqları [analizdə](PROJECT_ANALYSIS.md) göstərilir.
 
 ```mermaid
@@ -52,11 +54,11 @@ server_default.json üçün runtime loader yoxdur. Tick, maxPlayers, round/econo
 
 ## Lisenziya və authority əlaqəsi
 
-Layihə GPLv3-dür: istənilən kəs client-i və serveri fork edib yaya bilər.
+Layihə GPL-3.0-or-later-dür: istənilən kəs client-i və serveri fork edib yaya bilər.
 Bu, arxitekturaya konkret tələb qoyur — **client-in özündə saxladığı heç bir
 dəyər etibarlı sayıla bilməz**, çünki dəyişdirilmiş client mənbədən qurula bilər.
 
-PRD 156 onsuz da bunu tələb edir; GPLv3 sadəcə seçimi məcburi edir:
+PRD 156 onsuz da bunu tələb edir; GPL-3.0-or-later sadəcə seçimi məcburi edir:
 
 | Sahə | Harada təyin olunur | Fork edilmiş client nə edə bilər |
 |---|---|---|

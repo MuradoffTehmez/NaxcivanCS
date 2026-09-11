@@ -1,9 +1,10 @@
 # PRD 88, 123 - ASP.NET Core backend API konteyneri.
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+ARG DOTNET_SDK_VERSION=8.0.425
+FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_SDK_VERSION} AS build
 WORKDIR /src
 
-COPY Directory.Build.props ./
+COPY Directory.Build.props global.json ./
 COPY shared/ shared/
 COPY backend/ backend/
 

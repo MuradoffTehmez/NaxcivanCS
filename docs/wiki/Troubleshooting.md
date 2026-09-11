@@ -1,5 +1,7 @@
 # Problemlərin həlli
 
+> Gameplay/API nümunələri 0.2.2 tarixi snapshot-ına aiddir. Cari stable və unreleased dəyişikliklər üçün [README](../../README.md) və [CHANGELOG](../../CHANGELOG.md) əsasdır.
+
 | Əlamət | Ehtimal / yoxlama | Addım |
 |---|---|---|
 | godot tapılmır | PATH və ya auto-discovery | GODOT_BIN-də .NET executable yolunu göstərin |

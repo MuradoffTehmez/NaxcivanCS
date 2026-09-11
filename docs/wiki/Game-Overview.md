@@ -1,5 +1,7 @@
 # Oyun haqqında
 
+> Gameplay/API nümunələri 0.2.2 tarixi snapshot-ına aiddir. Cari stable və unreleased dəyişikliklər üçün [README](../../README.md) və [CHANGELOG](../../CHANGELOG.md) əsasdır.
+
 ## NaxcivanCS nədir?
 
 NaxcivanCS rəqabətli komanda oyunu qurmaq üçün hazırlanmış müstəqil taktiki first-person shooter layihəsidir. Xəritə və vizual kimlik üçün Naxçıvanın qalaları, daş küçələri, Duzdağ, Araz ətrafındakı sənaye məkanları və Ordubad həyətləri ilham mənbəyidir. Bunlar hazır asset paketi deyil, məhsulun yaradıcı istiqamətidir.

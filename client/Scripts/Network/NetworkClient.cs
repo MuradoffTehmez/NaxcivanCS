@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Tahmaz Muradov
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 using Godot;
 using NaxcivanCS.Shared.Constants;
 using NaxcivanCS.Shared.Enums;
@@ -163,75 +166,75 @@ public sealed partial class NetworkClient : Node
         switch (type)
         {
             case MessageType.HandshakeAccepted:
-            {
-                (int peerId, Team team, double _) = PacketCodec.DecodeHandshakeAccepted(payload);
-                LocalPeerId = peerId;
-                LocalTeam = team;
-                GD.Print($"[NetworkClient] Qəbul edildi: peer={peerId}, team={team}");
-                EmitSignal(SignalName.HandshakeAccepted, peerId, (int)team);
-                break;
-            }
+                {
+                    (int peerId, Team team, double _) = PacketCodec.DecodeHandshakeAccepted(payload);
+                    LocalPeerId = peerId;
+                    LocalTeam = team;
+                    GD.Print($"[NetworkClient] Qəbul edildi: peer={peerId}, team={team}");
+                    EmitSignal(SignalName.HandshakeAccepted, peerId, (int)team);
+                    break;
+                }
 
             case MessageType.HandshakeRejected:
-            {
-                string reason = PacketCodec.DecodeHandshakeRejected(payload);
-                GD.PushWarning($"[NetworkClient] Server rədd etdi: {reason}");
-                EmitSignal(SignalName.HandshakeRejected, reason);
-                break;
-            }
+                {
+                    string reason = PacketCodec.DecodeHandshakeRejected(payload);
+                    GD.PushWarning($"[NetworkClient] Server rədd etdi: {reason}");
+                    EmitSignal(SignalName.HandshakeRejected, reason);
+                    break;
+                }
 
             case MessageType.WorldSnapshot:
                 EmitSignal(SignalName.SnapshotReceived, payload.ToArray());
                 break;
 
             case MessageType.ShotFired:
-            {
-                (int shooter, System.Numerics.Vector3 origin, System.Numerics.Vector3 end,
-                    float punchPitch, float punchYaw, int shotIndex, bool hit) = PacketCodec.DecodeShotFired(payload);
+                {
+                    (int shooter, System.Numerics.Vector3 origin, System.Numerics.Vector3 end,
+                        float punchPitch, float punchYaw, int shotIndex, bool hit) = PacketCodec.DecodeShotFired(payload);
 
-                EmitSignal(
-                    SignalName.ShotFired,
-                    shooter,
-                    new Vector3(origin.X, origin.Y, origin.Z),
-                    new Vector3(end.X, end.Y, end.Z),
-                    punchPitch,
-                    punchYaw,
-                    shotIndex,
-                    hit);
-                break;
-            }
+                    EmitSignal(
+                        SignalName.ShotFired,
+                        shooter,
+                        new Vector3(origin.X, origin.Y, origin.Z),
+                        new Vector3(end.X, end.Y, end.Z),
+                        punchPitch,
+                        punchYaw,
+                        shotIndex,
+                        hit);
+                    break;
+                }
 
             case MessageType.RoundStateChanged:
-            {
-                (RoundPhase phase, MatchState matchState, float timeRemaining, int roundNumber,
-                    int alphaScore, int bravoScore, Team roundWinner, RoundEndReason endReason) =
-                        PacketCodec.DecodeRoundState(payload);
+                {
+                    (RoundPhase phase, MatchState matchState, float timeRemaining, int roundNumber,
+                        int alphaScore, int bravoScore, Team roundWinner, RoundEndReason endReason) =
+                            PacketCodec.DecodeRoundState(payload);
 
-                EmitSignal(
-                    SignalName.RoundStateReceived,
-                    (int)phase, (int)matchState, timeRemaining, roundNumber,
-                    alphaScore, bravoScore, (int)roundWinner, (int)endReason);
-                break;
-            }
+                    EmitSignal(
+                        SignalName.RoundStateReceived,
+                        (int)phase, (int)matchState, timeRemaining, roundNumber,
+                        alphaScore, bravoScore, (int)roundWinner, (int)endReason);
+                    break;
+                }
 
             case MessageType.Scoreboard:
                 EmitSignal(SignalName.ScoreboardReceived, payload.ToArray());
                 break;
 
             case MessageType.WeaponState:
-            {
-                (int magazine, int reserve, bool reloading) = PacketCodec.DecodeWeaponState(payload);
-                EmitSignal(SignalName.WeaponStateReceived, magazine, reserve, reloading);
-                break;
-            }
+                {
+                    (int magazine, int reserve, bool reloading) = PacketCodec.DecodeWeaponState(payload);
+                    EmitSignal(SignalName.WeaponStateReceived, magazine, reserve, reloading);
+                    break;
+                }
 
             case MessageType.PlayerDamaged:
             case MessageType.PlayerKilled:
-            {
-                (int victim, int attacker, HitBox hitBox, int damage, bool killed) = PacketCodec.DecodeDamage(payload);
-                EmitSignal(SignalName.DamageReceived, victim, attacker, (int)hitBox, damage, killed);
-                break;
-            }
+                {
+                    (int victim, int attacker, HitBox hitBox, int damage, bool killed) = PacketCodec.DecodeDamage(payload);
+                    EmitSignal(SignalName.DamageReceived, victim, attacker, (int)hitBox, damage, killed);
+                    break;
+                }
 
             default:
                 break;

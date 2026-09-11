@@ -2,6 +2,7 @@
 name: CI
 
 on:
+  workflow_call:
   push:
     branches: [main, develop, 'feature/**', 'fix/**', 'release/**', 'codex/**']
   pull_request:
@@ -24,6 +25,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - name: Check version synchronization
+        shell: pwsh
+        run: ./tools/sync-version.ps1 -Check
+      - name: Check workflow helper regressions
+        shell: pwsh
+        run: ./tools/test-quality-gates.ps1
       - name: Check Markdown links
         shell: pwsh
         run: ./tools/check-doc-links.ps1
@@ -39,10 +46,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # This job is already required on main/develop: DCO cannot be bypassed
+      # just because a new standalone check has not been added to protection yet.
+      - name: Enforce PR commit DCO
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: ./tools/check-dco.ps1 -BaseSha $env:BASE_SHA -HeadSha $env:HEAD_SHA
 
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: '8.0.x'
+          global-json-file: global.json
 
       - name: Restore
         run: dotnet restore NaxcivanCS.sln
@@ -52,17 +71,21 @@ jobs:
 
       - name: Format check (PRD 154)
         run: dotnet format NaxcivanCS.sln --verify-no-changes --no-restore
-        continue-on-error: true
 
       - name: Test (PRD 124 - economy, damage, weapon stats, match state)
-        run: dotnet test NaxcivanCS.sln --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
+        run: dotnet test NaxcivanCS.sln --configuration Release --no-build --collect:"XPlat Code Coverage" --settings coverage.runsettings --results-directory TestResults --logger trx
+
+      - name: Enforce coverage (70% per tested layer)
+        shell: pwsh
+        run: ./tools/check-coverage.ps1
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: test-results
-          path: '**/*.trx'
+          path: TestResults/
+          if-no-files-found: error
 
   # PRD 123 - Client/Server: build
   godot-projects:
@@ -73,13 +96,18 @@ jobs:
 
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: '8.0.x'
+          global-json-file: global.json
 
       - name: Build dedicated server assembly
         run: dotnet build server/NaxcivanCS.Server.csproj --configuration Release
 
       - name: Build client assembly
         run: dotnet build client/NaxcivanCS.Client.csproj --configuration Release
+
+      - name: Verify Godot project formatting
+        run: |
+          dotnet format server/NaxcivanCS.Server.csproj --verify-no-changes --no-restore
+          dotnet format client/NaxcivanCS.Client.csproj --verify-no-changes --no-restore
 
   # PRD 137 - End-to-end: dedicated server + 2 client, handshake və snapshot axını
   e2e-smoke-test:
@@ -92,7 +120,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: '8.0.x'
+          global-json-file: global.json
 
       - name: Cache Godot
         id: godot-cache
@@ -126,7 +154,7 @@ jobs:
     name: Docker image build
     runs-on: ubuntu-latest
     needs: [backend-and-shared]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    if: github.event_name == 'release' || (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/tags/')))
     steps:
       - uses: actions/checkout@v7
 

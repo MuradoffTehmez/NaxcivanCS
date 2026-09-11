@@ -2,16 +2,16 @@
 
 ## Vəziyyət
 
-0.2.2 araşdırma və lokal/LAN test prototipidir. Tam authentication, API rate limiting, heartbeat authorization və production moderasiya sistemi yoxdur. Server-authoritative dizayn bütün hücumlara qarşı zəmanət deyil.
+Cari stable buraxılış araşdırma və lokal/LAN test prototipidir. Tam authentication, API rate limiting, heartbeat authorization və production moderasiya sistemi yoxdur. Server-authoritative dizayn bütün hücumlara qarşı zəmanət deyil.
 
 ## Dəstəklənən versiyalar
 
 | Versiya | Dəstəklənir | Qeyd |
 |---|---|---|
-| 0.2.2 | :white_check_mark: | Cari əsas buraxılış |
-| < 0.2.2 | :x: | Köhnə prototiplər üçün dəstək verilmir |
+| 0.3.0 | :white_check_mark: | Cari stable buraxılış |
+| < 0.3.0 | :x: | Köhnə prototiplər üçün dəstək verilmir |
 
-Cari inkişaf bazası main-dir. Əvvəlki teqlər üçün ayrıca təhlükəsizlik baxımı və cavab müddəti öhdəliyi elan edilməyib.
+Cari inkişaf bazası `main`-dir; buradakı unreleased kod stable buraxılış sayılmır. Əvvəlki teqlər üçün ayrıca təhlükəsizlik baxımı və cavab müddəti öhdəliyi elan edilməyib.
 
 ## Problem bildirmək
 
@@ -35,7 +35,7 @@ Nəticələr **Security** tabında görünür. CodeQL qurulan kimi 5 real tapın
 
 ## Server-authoritative dizayn
 
-Layihə GPLv3-dür: dəyişdirilmiş client mənbədən qurula bilər. Ona görə
+Layihə GPL-3.0-or-later-dür: dəyişdirilmiş client mənbədən qurula bilər. Ona görə
 client-in saxladığı heç bir dəyər etibarlı sayılmır — health, damage, atəş
 kadensiyası, recoil və hərəkət sürəti serverdə hesablanır (PRD 156).
 Ətraflı: [ARCHITECTURE](docs/ARCHITECTURE.md).

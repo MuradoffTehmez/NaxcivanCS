@@ -5,7 +5,7 @@
 | Alət | Repo əsası | İstifadə |
 |---|---|---|
 | Git | Versiya xüsusi pin edilməyib | Repo və Wiki tarixçəsi |
-| .NET SDK | CI 8.0.x, layihələr net8.0 | C# build/test |
+| .NET SDK | global.json-da dəqiq pin, layihələr net8.0 | C# build/test |
 | .NET 8 runtime | net8.0 tətbiqlərinin icrası | Lokal oyun/backend |
 | Godot .NET/Mono | 4.7.2 | Client və headless server |
 | Git Bash | Windows shell skriptləri üçün | tools/*.sh |
@@ -19,7 +19,7 @@ Godot versiyası csproj və CI ilə eyni olmalıdır. Bu tələb repodakı pin-d
 ```bash
 git clone https://github.com/MuradoffTehmez/NaxcivanCS.git
 cd NaxcivanCS
-git switch --detach 0.2.2
+git switch main
 dotnet build NaxcivanCS.sln -c Release
 dotnet test NaxcivanCS.sln -c Release --no-build
 dotnet build server/NaxcivanCS.Server.csproj

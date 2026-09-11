@@ -1,6 +1,8 @@
 # NaxcivanCS Wiki
 
-**0.2.2 · Oyun, proqram təminatı və server idarəetməsi**
+**Gameplay sənədləri: 0.2.2 tarixi snapshot**
+
+Cari stable və `main` build-i üçün [README](../../README.md), dəyişikliklər üçün [CHANGELOG](../../CHANGELOG.md) əsasdır. Audio və unreleased round sistemi bu tarixi gameplay təsvirlərinə daxil deyil.
 
 Bu Wiki NaxcivanCS-in necə oynandığını, necə qurulduğunu və hazırda hansı sərhədlərə malik olduğunu izah edir. Hədəf məhsul Naxçıvan mövzulu 5v5 taktiki FPS-dir; 0.2.2 build-i multiplayer gunplay prototipidir.
 
@@ -45,6 +47,6 @@ Bu Wiki NaxcivanCS-in necə oynandığını, necə qurulduğunu və hazırda han
 
 Build/game/content: 0.2.2. Git teqi: 0.2.2. Protocol: 2. Köhnə protocol client ilə serverə qoşulma qəbul edilmir.
 
-Wiki mənbəyi əsas repoda docs/wiki qovluğudur. Mənbəyə keçidlər nəşr zamanı 0.2.2 teqinə bağlanır; Wiki tarixçəsi əsas Git tarixçəsindən ayrıdır.
+Wiki mənbəyi əsas repoda docs/wiki qovluğudur. Mənbəyə keçidlər nəşr zamanı seçilmiş commit və ya teqə bağlanır; Wiki tarixçəsi əsas Git tarixçəsindən ayrıdır.
 
 [README](../../README.md) · [Buraxılış qeydləri](../RELEASE-0.2.2.md) · [Məlum problemlər](../KNOWN_ISSUES.md)

@@ -1,12 +1,22 @@
 # Dəyişiklik jurnalı
 
-Bu jurnal tətbiq edilmiş dəyişiklikləri məhsulun gələcək planlarından ayırır. Cari git teqi `0.3.0`, proqram/content versiyası `0.3.0`-dır.
+Bu jurnal tətbiq edilmiş dəyişiklikləri məhsulun gələcək planlarından ayırır. Stable versiya və inkişaf build-i `Directory.Build.props`-da ayrı saxlanır. `Buraxılmamış` bölməsi stable teqə daxil deyil.
 
 **Teq adlandırması:** ilk üç buraxılış `v` prefiksi ilə teqlənib (`v0.1.0`, `v0.2.0`, `v0.2.1`), `0.2.2`-dən etibarən prefikssiz davam edir. Bundan sonra prefikssiz forma standartdır; köhnə teqlər tarix olaraq olduğu kimi qalır.
 
 Bu jurnaldakı heç bir yazı prototipin production-ready olması demək deyil.
 
 ## Buraxılmamış
+
+- Vahid versiya mənbəyi və drift yoxlaması; GPL-3.0-or-later metadata uyğunluğu.
+- .NET 8 SDK pinning, məcburi format və DCO yoxlamaları.
+- Backend integration və Godot-dan asılı olmayan server testləri; hər test olunan qat üçün 70% line coverage gate və Cobertura artifact.
+- Build/test/security yoxlamalarından asılı release export, SHA256SUMS və SPDX SBOM pipeline.
+- Godot export üçün client/server solution faylları, Linux preset düzəlişi və xətalı .NET export-un uğurlu sayılmasının qarşısı.
+- LICENSE-dəki qeyri-standart cümlələr kanonik GPL v3 mətni ilə düzəldildi; layihə grant-ı GPL-3.0-or-later olaraq saxlanır.
+- Bütün mənbə fayllarında REUSE/SPDX başlığı; `.editorconfig` şablonu ilə `dotnet format` avtomatik yazır və CI header-siz faylı rədd edir.
+- `global.json` `rollForward: latestFeature` — .NET 8 pin-i saxlanır, 8.0 daxilində patch yeniləmələrinə icazə verilir.
+- DCO yoxlaması merge commit-lərini keçir: `develop → main` buraxılış axını əvvəllər imzalana bilməyən merge commit-lərinə görə bloklanırdı.
 
 ### Əlavə edildi
 

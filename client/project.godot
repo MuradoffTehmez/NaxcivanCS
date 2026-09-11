@@ -7,7 +7,7 @@ config_version=5
 
 config/name="NaxcivanCS"
 config/description="Competitive Multiplayer Tactical FPS"
-config/version="0.3.0"
+config/version="0.3.1-dev"
 run/main_scene="res://Scenes/Main.tscn"
 config/features=PackedStringArray("4.7", "C#", "Forward Plus")
 config/icon="res://icon.svg"
