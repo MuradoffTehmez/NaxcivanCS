@@ -1,10 +1,12 @@
 using Godot;
+using NaxcivanCS.Client.Audio;
 using NaxcivanCS.Client.Effects;
 using NaxcivanCS.Client.Network;
 using NaxcivanCS.Client.Player;
 using NaxcivanCS.Client.UI;
 using NaxcivanCS.Shared.Constants;
 using NaxcivanCS.Shared.Enums;
+using NaxcivanCS.Shared.Gameplay;
 using NaxcivanCS.Shared.Net;
 
 namespace NaxcivanCS.Client.Core;
@@ -23,7 +25,9 @@ public sealed partial class GameBootstrap : Node3D
     private LocalPlayerController? _localPlayer;
     private PrototypeHud? _hud;
     private ShotEffects? _effects;
+    private GameAudio? _audio;
     private bool _autoFire;
+    private bool _wasReloading;
 
     private int _snapshotCount;
     private double _lastServerTimeMs;
@@ -63,6 +67,9 @@ public sealed partial class GameBootstrap : Node3D
 
         _effects = new ShotEffects { Name = "ShotEffects" };
         AddChild(_effects);
+
+        _audio = new GameAudio { Name = "Audio" };
+        AddChild(_audio);
 
         if (_network.ConnectToServer(address, port) != Error.Ok)
         {
@@ -166,6 +173,7 @@ public sealed partial class GameBootstrap : Node3D
 
         _localPlayer = new LocalPlayerController { Name = "LocalPlayer" };
         _localPlayer.AutoFire = _autoFire;
+        _localPlayer.Footstep += position => OnFootstep(position, isLocal: true);
         AddChild(_localPlayer);
         _localPlayer.Attach(_network);
     }
@@ -220,6 +228,7 @@ public sealed partial class GameBootstrap : Node3D
             if (!_remotePlayers.TryGetValue(player.PeerId, out RemotePlayerView? view))
             {
                 view = RemotePlayerView.Create(player.PeerId);
+                view.Footstep += position => OnFootstep(position, isLocal: false);
                 _remotePlayers[player.PeerId] = view;
                 AddChild(view);
             }
@@ -246,6 +255,7 @@ public sealed partial class GameBootstrap : Node3D
         if (attackerPeerId == _network.LocalPeerId)
         {
             _hud?.ShowHitMarker(killed);
+            _audio?.PlayHitMarker(killed);
         }
     }
 
@@ -264,9 +274,14 @@ public sealed partial class GameBootstrap : Node3D
 
         bool isLocal = shooterPeerId == _network.LocalPeerId;
 
+        // PRD 83 - Vurulma səsi hədəfin yerindən gəlir: "dəydimi?" sualına
+        // qulaqla da cavab verir.
+        _audio?.PlayImpact(end, hit);
+
         if (isLocal && _localPlayer is not null)
         {
             _localPlayer.OnShotFired(punchPitch, punchYaw);
+            _audio?.PlayLocalShot();
 
             // Lokal oyunçu üçün tracer view model-in lüləsindən başlayır ki,
             // silahla üst-üstə düşsün.
@@ -274,6 +289,7 @@ public sealed partial class GameBootstrap : Node3D
             return;
         }
 
+        _audio?.PlayRemoteShot(origin);
         _effects?.SpawnTracer(origin, end, hit);
     }
 
@@ -281,6 +297,34 @@ public sealed partial class GameBootstrap : Node3D
     {
         _hud?.UpdateAmmo(magazine, reserve, reloading);
         _localPlayer?.SetReloading(reloading);
+
+        // PRD 83 - Reload səsi yalnız vəziyyət DƏYİŞƏNDƏ çalınır; server
+        // hər atəşdə də weapon-state göndərir.
+        if (reloading == _wasReloading)
+        {
+            return;
+        }
+
+        _wasReloading = reloading;
+        Vector3 position = _localPlayer?.GlobalPosition ?? GlobalPosition;
+
+        if (reloading)
+        {
+            _audio?.PlayReloadStart(position, isLocal: true);
+        }
+        else
+        {
+            _audio?.PlayReloadEnd(position, isLocal: true);
+        }
+    }
+
+    /// <summary>PRD 83, 84 - Addım səsi ayağın altındakı səthə görə seçilir.</summary>
+    private void OnFootstep(Vector3 position, bool isLocal)
+    {
+        SurfaceMaterial surface = BlockoutMap.SurfaceAt(
+            new System.Numerics.Vector3(position.X, position.Y, position.Z));
+
+        _audio?.PlayFootstep(position, surface, isLocal);
     }
 
     private void OnDisconnected()
