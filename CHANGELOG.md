@@ -8,6 +8,12 @@ Bu jurnaldakı heç bir yazı prototipin production-ready olması demək deyil.
 
 ## Buraxılmamış
 
+Hazırda yeni dəyişiklik yoxdur.
+
+## 0.4.0 — 2026-09-11
+
+Bu buraxılış Bomb/Defuse obyektivini, server config-dən idarə olunan round taymerlərini və tam quality gate/release infrastrukturunu gətirir.
+
 - Vahid versiya mənbəyi və drift yoxlaması; GPL-3.0-or-later metadata uyğunluğu.
 - .NET 8 SDK pinning, məcburi format və DCO yoxlamaları.
 - Backend integration və Godot-dan asılı olmayan server testləri; hər test olunan qat üçün 70% line coverage gate və Cobertura artifact.
@@ -18,7 +24,12 @@ Bu jurnaldakı heç bir yazı prototipin production-ready olması demək deyil.
 - `global.json` `rollForward: latestFeature` — .NET 8 pin-i saxlanır, 8.0 daxilində patch yeniləmələrinə icazə verilir.
 - DCO yoxlaması merge commit-lərini keçir: `develop → main` buraxılış axını əvvəllər imzalana bilməyən merge commit-lərinə görə bloklanırdı.
 - **Bomb/Defuse (PRD 8).** `BombDirector` — shared-də saf state machine: A/B site zonaları, plant (3.2 s) və defuse (10 s, kit ilə 5 s), daşıyıcı ölümündə bombanın düşməsi və götürülməsi, plant/defuse mükafatları. Plant round taymerini bomba taymeri ilə əvəz edir; defuse roundu müdafiənin xeyrinə bitirir. Client-də objective HUD və site işarələri.
-- **Protokol 3.** `BombStateChanged` mesajı əlavə olundu; protocol 2 client-ləri qəbul edilmir.
+- **Protokol 4.** `BombStateChanged` (PRD 8) və `BuyRequest`/`BuyResult` (PRD 27) mesajları; köhnə protocol client-ləri qəbul edilmir.
+- Bomba yerləşdirildikdən sonra müdafiə tam məhv edilərsə round dərhal bitir; hücum məhv edilərsə bomba hələ partlaya bildiyi üçün round davam edir.
+- Round və bomba taymerləri `config/server_default.json`-dan oxunur (PRD 10); pozuq config səssizcə default-a qayıtmır.
+- Yerə düşmüş və yerləşdirilmiş bomba dünyada görünür; plant, defuse, partlayış və sürətlənən taymer siqnalı üçün prosedural audio.
+- Defuse kit alışı: `B` düyməsi ilə buy fazasında, yalnız müdafiə tərəfinə; kit ölümlə itir.
+- Godot export yoxlaması headless mühit xətalarını (fontconfig, xkb, display) süzür — əvvəllər Docker gameserver image-i və release pipeline-ı bu səbəbdən uğursuz olurdu.
 
 ### Əlavə edildi
 

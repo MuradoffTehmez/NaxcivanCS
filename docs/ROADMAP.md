@@ -19,10 +19,9 @@ Cari stable buraxılış hələ prototip mərhələsindədir. Versiya adı mərh
 - [ ] Divar occlusion, friendly fire və hitscan məsafə qaydaları.
 - [ ] Tick üzrə movement büdcəsi və möhkəm input validasiyası.
 - [ ] Ammo/respawn sinxronlaşdırılması və reconciliation təkmilləşməsi.
-- [ ] Server config loader və faktiki spread/movement balans inteqrasiyası.
+- [ ] Faktiki spread/movement balans inteqrasiyası (round taymerləri artıq config-dən oxunur).
 - [ ] 10 client, latency/loss və 60 dəqiqəlik sabitlik ölçümü.
 - [ ] Əl ilə gunplay hissinin, render və səsin yoxlanması.
-- [ ] Round taymerlərinin server config-dən oxunması (hazırda `GameConstants`-dadır).
 
 ## Multiplayer və Bomb Mode
 

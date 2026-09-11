@@ -290,6 +290,61 @@ public sealed class MatchDirectorTests
         Assert.Equal(RoundEndReason.BombDefused, director.LastRoundEndReason);
     }
 
+    /// <summary>
+    /// PRD 8 - Defuse edə biləcək heç kim qalmayıbsa taymeri gözlətmək mənasızdır.
+    /// </summary>
+    [Fact]
+    public void BombPlanted_DefendersWipedOut_EndsRoundImmediately()
+    {
+        MatchDirector director = StartedMatch();
+        Advance(director, GameConstants.FreezeTimeSeconds + GameConstants.BuyTimeSeconds + 0.2f);
+        director.OnBombPlanted();
+
+        MatchEvent result = Advance(
+            director, Tick * 2f, aliveAlpha: 3, aliveBravo: 0, stopOn: MatchEvent.RoundEnded);
+
+        Assert.Equal(MatchEvent.RoundEnded, result);
+        Assert.Equal(Team.Alpha, director.RoundWinner);
+        Assert.Equal(RoundEndReason.BravoEliminated, director.LastRoundEndReason);
+        Assert.True(director.PhaseTimeRemaining < GameConstants.BombTimerSeconds);
+    }
+
+    /// <summary>
+    /// Əks hal: hücum edənlərin hamısı ölsə də bomba hələ partlaya bilər,
+    /// ona görə round davam etməlidir.
+    /// </summary>
+    [Fact]
+    public void BombPlanted_AttackersWipedOut_RoundContinues()
+    {
+        MatchDirector director = StartedMatch();
+        Advance(director, GameConstants.FreezeTimeSeconds + GameConstants.BuyTimeSeconds + 0.2f);
+        director.OnBombPlanted();
+
+        MatchEvent result = Advance(director, 5f, aliveAlpha: 0, aliveBravo: 4);
+
+        Assert.Equal(MatchEvent.None, result);
+        Assert.Equal(RoundPhase.BombPlanted, director.Phase);
+        Assert.Equal(Team.None, director.RoundWinner);
+    }
+
+    /// <summary>
+    /// Bomba yerləşdirilməmişkən müdafiənin məhv edilməsi köhnə qayda ilə
+    /// işləməkdə davam edir — yeni şərt Active fazanı dəyişməməlidir.
+    /// </summary>
+    [Fact]
+    public void ActivePhase_DefendersWipedOut_StillEndsRound()
+    {
+        MatchDirector director = StartedMatch();
+        Advance(director, GameConstants.FreezeTimeSeconds + GameConstants.BuyTimeSeconds + 0.2f);
+
+        MatchEvent result = Advance(
+            director, Tick * 2f, aliveAlpha: 5, aliveBravo: 0, stopOn: MatchEvent.RoundEnded);
+
+        Assert.Equal(MatchEvent.RoundEnded, result);
+        Assert.Equal(Team.Alpha, director.RoundWinner);
+        Assert.Equal(RoundEndReason.BravoEliminated, director.LastRoundEndReason);
+    }
+
     [Fact]
     public void BombExploding_GivesRoundToAttackers()
     {

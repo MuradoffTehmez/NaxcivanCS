@@ -5,7 +5,7 @@ abstract: "Competitive multiplayer tactical FPS prototype developed with Godot 4
 authors:
   - family-names: "Muradov"
     given-names: "Tahmaz"
-version: "0.3.0"
+version: "0.4.0"
 date-released: "2026-09-11"
 license: "GPL-3.0-or-later"
 repository-code: "https://github.com/MuradoffTehmez/NaxcivanCS"

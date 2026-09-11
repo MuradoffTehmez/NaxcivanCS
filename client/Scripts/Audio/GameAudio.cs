@@ -46,6 +46,10 @@ public sealed partial class GameAudio : Node3D
     private AudioStreamWav? _fleshImpact;
     private AudioStreamWav? _hitMarker;
     private AudioStreamWav? _killMarker;
+    private AudioStreamWav? _bombBeep;
+    private AudioStreamWav? _bombPlanted;
+    private AudioStreamWav? _bombDefused;
+    private AudioStreamWav? _bombExplosion;
 
     private int _nextPoolIndex;
 
@@ -53,6 +57,10 @@ public sealed partial class GameAudio : Node3D
     {
         _rifleShot = ProceduralAudio.RifleShot();
         _dryFire = ProceduralAudio.DryFire();
+        _bombBeep = ProceduralAudio.BombBeep();
+        _bombPlanted = ProceduralAudio.BombPlanted();
+        _bombDefused = ProceduralAudio.BombDefused();
+        _bombExplosion = ProceduralAudio.BombExplosion();
         _magazineOut = ProceduralAudio.MagazineOut();
         _magazineIn = ProceduralAudio.MagazineIn();
         _worldImpact = ProceduralAudio.WorldImpact();
@@ -185,6 +193,27 @@ public sealed partial class GameAudio : Node3D
 
     /// <summary>PRD 78 - Vurulma təsdiqi, yalnız atıcıya.</summary>
     public void PlayHitMarker(bool killed) => PlayLocalUi(killed ? _killMarker : _hitMarker, volumeDb: -6f);
+
+    /// <summary>
+    /// PRD 8, 83 - Yerləşdirilmiş bombanın taymer siqnalı.
+    ///
+    /// Bomba taktiki məlumatdır: müdafiə onu eşidərək site-ı tapa bilməlidir,
+    /// ona görə addımdan geniş məsafədən eşidilir.
+    /// </summary>
+    public void PlayBombBeep(Vector3 position)
+        => PlaySpatial(_bombBeep, position, volumeDb: -4f, pitchJitter: 0f, maxDistance: GunshotRange);
+
+    /// <summary>PRD 8 - Plant tamamlandı.</summary>
+    public void PlayBombPlanted(Vector3 position)
+        => PlaySpatial(_bombPlanted, position, volumeDb: -1f, pitchJitter: 0f, maxDistance: GunshotRange);
+
+    /// <summary>PRD 8 - Defuse tamamlandı.</summary>
+    public void PlayBombDefused(Vector3 position)
+        => PlaySpatial(_bombDefused, position, volumeDb: -1f, pitchJitter: 0f, maxDistance: GunshotRange);
+
+    /// <summary>PRD 8 - Partlayış bütün xəritədən eşidilir.</summary>
+    public void PlayBombExplosion(Vector3 position)
+        => PlaySpatial(_bombExplosion, position, volumeDb: 2f, pitchJitter: 0f, maxDistance: 400f);
 
     /// <summary>PRD 84 - Səthə uyğun addım səsi.</summary>
     public void PlayFootstep(Vector3 position, SurfaceMaterial surface, bool isLocal)

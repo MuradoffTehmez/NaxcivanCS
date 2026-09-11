@@ -214,6 +214,42 @@ public static class ProceduralAudio
     private static float Decay(float t, float tau) => MathF.Exp(-t / tau);
 
     /// <summary>Qısa mexaniki klik: filtrlənmiş küy + rezonans.</summary>
+    /// <summary>PRD 8, 84 - Yerləşdirilmiş bombanın taymer siqnalı.</summary>
+    public static AudioStreamWav BombBeep() => Click(0.06f, 2200f, 0.006f, 0.55f);
+
+    /// <summary>PRD 8 - Plant tamamlandı siqnalı.</summary>
+    public static AudioStreamWav BombPlanted() => Click(0.18f, 700f, 0.05f, 0.8f);
+
+    /// <summary>PRD 8 - Defuse tamamlandı siqnalı.</summary>
+    public static AudioStreamWav BombDefused() => Click(0.25f, 1200f, 0.07f, 0.7f);
+
+    /// <summary>
+    /// PRD 8 - Partlayış: aşağı tezlikli gurultu və uzun decay.
+    /// </summary>
+    public static AudioStreamWav BombExplosion()
+    {
+        const float duration = 1.2f;
+        var count = (int)(SampleRate * duration);
+        var samples = new float[count];
+        var rng = new Random(Seed + 977);
+
+        float lowState = 0f;
+
+        for (int i = 0; i < count; i++)
+        {
+            float t = i / (float)SampleRate;
+            var noise = (float)((rng.NextDouble() * 2.0) - 1.0);
+
+            // Alçaq keçid filtri gurultunu "böyük" edir; sinus isə təkan verir.
+            lowState += (noise - lowState) * 0.06f;
+
+            samples[i] = (lowState * Decay(t, 0.35f) * 1.4f)
+                + (MathF.Sin(2f * MathF.PI * 48f * t) * Decay(t, 0.18f) * 0.9f);
+        }
+
+        return Build(samples, 1f);
+    }
+
     private static AudioStreamWav Click(float duration, float ringHz, float decayTau, float level)
     {
         int count = (int)(SampleRate * duration);

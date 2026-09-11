@@ -29,6 +29,7 @@ public sealed partial class GameBootstrap : Node3D
     private PrototypeHud? _hud;
     private ShotEffects? _effects;
     private GameAudio? _audio;
+    private BombView? _bombView;
     private RoundHud? _roundHud;
     private Scoreboard? _scoreboard;
     private bool _autoFire;
@@ -84,6 +85,11 @@ public sealed partial class GameBootstrap : Node3D
 
         _audio = new GameAudio { Name = "Audio" };
         AddChild(_audio);
+
+        // PRD 8 - Bomba görüntüsü və taymer siqnalı.
+        _bombView = new BombView { Name = "BombView" };
+        AddChild(_bombView);
+        _bombView.AttachAudio(_audio);
 
         if (_network.ConnectToServer(address, port) != Error.Ok)
         {
@@ -353,12 +359,16 @@ public sealed partial class GameBootstrap : Node3D
     private void OnBombStateReceived(
         int state, int carrierPeerId, Vector3 position, float plantProgress,
         float defuseProgress, string plantedSite)
-        => _roundHud?.UpdateBomb(
+    {
+        _roundHud?.UpdateBomb(
             (BombState)state,
             carrierPeerId == _network?.LocalPeerId,
             plantProgress,
             defuseProgress,
             plantedSite);
+
+        _bombView?.Apply((BombState)state, position);
+    }
 
     private void OnScoreboardReceived(byte[] payload)
     {

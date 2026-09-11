@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Tahmaz Muradov
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+using System.Text.Json;
 using Godot;
 using NaxcivanCS.Server.Damage;
 using NaxcivanCS.Server.Players;
@@ -52,13 +53,13 @@ public sealed partial class GameWorld : Node3D
     /// Round məntiqi burada deyil, shared-dəki saf state machine-dədir —
     /// beləliklə round keçidləri unit testlə yoxlanıla bilir.
     /// </summary>
-    private readonly MatchDirector _match = new();
+    private MatchDirector _match = new();
 
     /// <summary>
     /// PRD 8 - Bomba objective-i. Round idarəçisi kimi saf shared state machine;
     /// plant/defuse qaydaları burada deyil, unit testlə örtülmüş sinifdədir.
     /// </summary>
-    private readonly BombDirector _bomb = new();
+    private BombDirector _bomb = new();
 
     /// <summary>Hər tick yenidən doldurulur — allocation-dan qaçmaq üçün sahədədir.</summary>
     private readonly List<BombInteractor> _bombInteractors = new();
@@ -75,6 +76,11 @@ public sealed partial class GameWorld : Node3D
 
     public override void _Ready()
     {
+        // PRD 10 - Taymerlər config-dən gəlir; fayl yoxdursa kod default-u qalır.
+        ServerConfig config = LoadServerConfig();
+        _match = new MatchDirector(timings: config.Round);
+        _bomb = new BombDirector(config.Round);
+
         _weapons = LoadWeaponCatalog();
 
         WeaponData? rifle = _weapons.Get("weapon_rifle_01");
@@ -285,6 +291,58 @@ public sealed partial class GameWorld : Node3D
         BroadcastBombState();
     }
 
+    /// <summary>
+    /// PRD 8, 27 - Alış cəhdi. Qaydalar shared <see cref="BuyRules"/>-dadır,
+    /// burada yalnız oyunçu vəziyyəti tətbiq olunur.
+    /// </summary>
+    public (BuyResultCode Code, int Money) TryBuy(int peerId, BuyItem item)
+    {
+        if (!_players.TryGetValue(peerId, out ServerPlayer? player))
+        {
+            return (BuyResultCode.PlayerDead, 0);
+        }
+
+        BuyResultCode code = BuyRules.Evaluate(
+            item,
+            player.State.Team,
+            player.State.IsAlive,
+            _match.BuyEnabled,
+            AlreadyOwns(player, item),
+            player.State.Money,
+            out int remainingMoney);
+
+        if (code != BuyResultCode.Purchased)
+        {
+            return (code, player.State.Money);
+        }
+
+        player.State.Money = remainingMoney;
+        Grant(player, item);
+        EmitSignal(SignalName.ScoreboardChanged);
+
+        GD.Print($"[Buy] {player.State.Username} aldi: {item} (qaliq {remainingMoney})");
+        return (code, remainingMoney);
+    }
+
+    private static bool AlreadyOwns(ServerPlayer player, BuyItem item) => item switch
+    {
+        BuyItem.DefuseKit => player.State.HasDefuseKit,
+        _ => false,
+    };
+
+    private static void Grant(ServerPlayer player, BuyItem item)
+    {
+        switch (item)
+        {
+            case BuyItem.DefuseKit:
+                player.State.HasDefuseKit = true;
+                break;
+
+            default:
+                break;
+        }
+    }
+
     /// <summary>PRD 25 - Plant mükafatı: komandaya və yerləşdirən oyunçuya.</summary>
     private void AwardPlant()
     {
@@ -388,6 +446,11 @@ public sealed partial class GameWorld : Node3D
         foreach (ServerPlayer player in _players.Values)
         {
             player.State.Team = player.State.Team == Team.Alpha ? Team.Bravo : Team.Alpha;
+
+            // PRD 8, 27 - Defuse kit yalnız müdafiə üçün mənalıdır. Tərəf
+            // dəyişəndə saxlanılsaydı, hücumda ölü yük olar, geri qayıdanda isə
+            // "artıq var" deyə yenidən alına bilməzdi.
+            player.State.HasDefuseKit = false;
         }
 
         GD.Print("[Match] Yari vaxt — komandalar teref deyisdi");
@@ -528,6 +591,9 @@ public sealed partial class GameWorld : Node3D
         {
             player.State.Kills++;
             GD.Print($"[GameWorld] {player.State.Username} → {victim.State.Username} ({result.HitBox})");
+
+            // PRD 27 - Defuse kit ölümlə itir; sağ qalan onu növbəti rounda saxlayır.
+            victim.State.HasDefuseKit = false;
 
             // PRD 8 - Daşıyıcı öldükdə bomba öldüyü yerə düşür və götürülə bilər.
             if (victimId == _bomb.CarrierPeerId && _bomb.OnCarrierDied(victim.Movement.Position) != BombEvent.None)
@@ -708,6 +774,35 @@ public sealed partial class GameWorld : Node3D
         });
 
         return body;
+    }
+
+    /// <summary>
+    /// PRD 10, 148 - Server konfiqurasiyası. Silah kataloqu ilə eyni yol
+    /// axtarışından istifadə edir: export-da <c>res://</c>, development-də repo kökü.
+    /// </summary>
+    private static ServerConfig LoadServerConfig()
+    {
+        string[] candidates =
+        {
+            ProjectSettings.GlobalizePath("res://../config/server_default.json"),
+            ProjectSettings.GlobalizePath("user://config/server_default.json"),
+            Path.Combine(AppContext.BaseDirectory, "config", "server_default.json"),
+        };
+
+        try
+        {
+            ServerConfig config = ServerConfig.LoadFirstAvailable(candidates);
+            GD.Print($"[GameWorld] Config: freeze={config.Round.FreezeTimeSeconds}s, " +
+                     $"round={config.Round.RoundTimeSeconds}s, bomba={config.Round.BombTimerSeconds}s");
+            return config;
+        }
+        catch (Exception error) when (error is JsonException or InvalidOperationException or IOException)
+        {
+            // Pozuq config səssizcə default-a qayıtmamalıdır: admin dəyişikliyin
+            // tətbiq olunduğunu düşünərdi.
+            GD.PushError($"[GameWorld] server_default.json oxunmadı, default dəyərlər işlədilir: {error.Message}");
+            return ServerConfig.Defaults;
+        }
     }
 
     private static WeaponCatalog LoadWeaponCatalog()

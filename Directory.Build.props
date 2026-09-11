@@ -13,9 +13,9 @@
     <!-- CA1716: "Shared" ad fəzası PRD 121/153-də təsbit olunub, dəyişdirilmir. -->
     <NoWarn>$(NoWarn);CA1716</NoWarn>
     <!-- Version source of truth. Run tools/sync-version.ps1 after editing. -->
-    <NaxcivanCSStableVersion>0.3.0</NaxcivanCSStableVersion>
+    <NaxcivanCSStableVersion>0.4.0</NaxcivanCSStableVersion>
     <NaxcivanCSReleaseDate>2026-09-11</NaxcivanCSReleaseDate>
-    <NaxcivanCSVersion>0.3.1-dev</NaxcivanCSVersion>
+    <NaxcivanCSVersion>0.4.0</NaxcivanCSVersion>
     <Version>$(NaxcivanCSVersion)</Version>
     <Company>NaxcivanCS</Company>
     <Product>NaxcivanCS</Product>
