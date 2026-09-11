@@ -3,7 +3,7 @@ name: CI
 
 on:
   push:
-    branches: [main, develop, 'feature/**', 'fix/**', 'release/**']
+    branches: [main, develop, 'feature/**', 'fix/**', 'release/**', 'codex/**']
   pull_request:
     branches: [main, develop]
 
@@ -13,6 +13,18 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
 
 jobs:
+  documentation:
+    name: Documentation links and Wiki export
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Markdown links
+        shell: pwsh
+        run: ./tools/check-doc-links.ps1
+      - name: Export Wiki without publishing
+        shell: pwsh
+        run: ./tools/publish-wiki.ps1 -SourceRef 0.2.2
+
   # PRD 123 - Backend: restore, build, test
   backend-and-shared:
     name: Shared + Backend (build, test)

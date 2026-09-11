@@ -1,16 +1,16 @@
-## Nə dəyişdi
+## Problem və nəticə
+Konkret trigger, əvvəlki davranış və yeni nəticə.
 
-<!-- Qısa təsvir -->
+## Dəyişikliklər
+Reviewer üçün vacib komponentlər və davranışlar.
 
-## PRD istinadı
+## Yoxlama
+İcra olunan build/test, nəticə və icra olunmayan yoxlamalar.
 
-<!-- Məs: PRD 25 (Economy), PRD 46 (Hit registration) -->
+## Uyğunluq
+Protocol, config, asset və rollout təsiri varsa yazın.
 
-## Yoxlama siyahısı
-
-- [ ] `dotnet build NaxcivanCS.sln` xətasız keçir
-- [ ] `dotnet test NaxcivanCS.sln` yaşıldır
-- [ ] Balans rəqəmləri kodda hardcode edilməyib (PRD 155)
-- [ ] Client-ə server səlahiyyəti verilməyib (PRD 156)
-- [ ] Yeni string-lər `localization/` fayllarına əlavə olunub (PRD 118)
-- [ ] Counter-Strike/Valve asset və ya kodu istifadə olunmayıb (PRD 144)
+## Sənədlər
+- [ ] İctimai davranış dəyişibsə README/Wiki/CHANGELOG yenilənib.
+- [ ] Plan ilə hazır funksiya ayrılıb.
+- [ ] Sirlər və lokal build/log faylları daxil edilməyib.
