@@ -16,6 +16,7 @@ Bu jurnaldakı heç bir yazı prototipin production-ready olması demək deyil.
 - LICENSE-dəki qeyri-standart cümlələr kanonik GPL v3 mətni ilə düzəldildi; layihə grant-ı GPL-3.0-or-later olaraq saxlanır.
 - Bütün mənbə fayllarında REUSE/SPDX başlığı; `.editorconfig` şablonu ilə `dotnet format` avtomatik yazır və CI header-siz faylı rədd edir.
 - `global.json` `rollForward: latestFeature` — .NET 8 pin-i saxlanır, 8.0 daxilində patch yeniləmələrinə icazə verilir.
+- DCO yoxlaması merge commit-lərini keçir: `develop → main` buraxılış axını əvvəllər imzalana bilməyən merge commit-lərinə görə bloklanırdı.
 
 ### Əlavə edildi
 
