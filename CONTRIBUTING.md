@@ -44,6 +44,25 @@ Conventional Commits nümunələri: `feat(server): ...`, `fix(client): ...`, `do
 
 Sənəd dəyişikliklərində `docs/wiki/` mənbəyini redaktə edin, lokal linkləri yoxlayın və buraxılışdan sonra Wiki-ni nəşr edin. PRD məhsul hədəfidir; hər PR ilə onun bütün hədəflərini tamamlanmış göstərməyin.
 
+## Mənşə sertifikatı (DCO)
+
+Layihə **GNU GPLv3** altındadır. Töhfə verən öz kodunun müəllif hüququnu saxlayır,
+ona görə lisenziyanı sonradan dəyişmək üçün hər töhfə verənin razılığı lazım olacaq.
+Bunu idarə oluna bilən saxlamaq üçün hər commit [Developer Certificate of
+Origin 1.1](https://developercertificate.org/) ilə imzalanmalıdır.
+
+Commit-ə `Signed-off-by` sətri əlavə etmək üçün:
+
+```bash
+git commit -s -m "feat(server): ..."
+```
+
+Bu sətir o deməkdir ki, göndərdiyiniz kodu ya özünüz yazmısınız, ya da onu
+layihənin lisenziyası altında təqdim etmək hüququnuz var. Mənbəyi bilinməyən
+və ya uyğun olmayan lisenziyalı kod qəbul edilmir.
+
+SSH ilə commit imzalamaq üçün: `tools/setup-signing.ps1`.
+
 ## Material və təhlükəsizlik
 
 Asset-in mənşə və icazəsini [ASSETS.md](ASSETS.md) qaydasına uyğun qeyd edin. Parol, token, .env, şəxsi oyunçu məlumatları və lokal log arxivlərini commit etməyin. Təhlükəsizlik problemi üçün [SECURITY.md](SECURITY.md), ünsiyyət üçün [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) tətbiq olunur.
