@@ -16,7 +16,7 @@ TestResults/
 .godot/
 .import/
 export.cfg
-export_presets.cfg
+# export_presets.cfg commit olunur - CI ve Docker build ondan asilidir (PRD 123)
 *.translation
 data_*/
 mono_crash.*.json
