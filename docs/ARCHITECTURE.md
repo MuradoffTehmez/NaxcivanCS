@@ -41,6 +41,32 @@ Bu qayda `shared/NaxcivanCS.Shared/Net/NetworkProtocol.cs` faylında `MessageTyp
 enum-u ilə struktur şəklində təsbit olunub: client→server mesajları 1–99,
 server→client mesajları 100+ aralığındadır.
 
+## 2b. Wire protokolu (PRD 41)
+
+Godot-un yüksək səviyyəli RPC-si **istifadə edilmir**. Səbəb: client və server
+ayrı layihələrdir (RPC eyni node yolunu tələb edir) və UDP paket ölçüsü üzərində
+tam nəzarət lazımdır. Əvəzində xam ENet paketləri `PacketCodec` ilə oxunur.
+
+Hər paket 2 baytlıq `MessageType` başlığı ilə başlayır:
+
+| Növ | İstiqamət | Nəqliyyat | Məzmun |
+|---|---|---|---|
+| `Handshake` | client → server | reliable | protokol versiyası + username |
+| `HandshakeAccepted` / `Rejected` | server → client | reliable | peer id, komanda / səbəb |
+| `InputCommand` | client → server | **unreliable** | sequence, oxlar, yaw/pitch, düymə maskası |
+| `WorldSnapshot` | server → client | **unreliable** | tick, server vaxtı, oyunçu siyahısı |
+| `PlayerDamaged` / `PlayerKilled` | server → client | reliable | qurban, hücumçu, hitbox, damage |
+
+Input və snapshot **unreliable** gedir: köhnəlmiş paketi yenidən göndərmək
+gecikmə yaradar, növbəti paket onsuz da daha yeni vəziyyəti daşıyır.
+
+Snapshot bir oyunçu üçün 32 bayt tutur; 10 oyunçuluq tam snapshot 334 baytdır —
+tipik MTU-dan xeyli aşağı, fraqmentasiya olmur. Bu, unit testlə qorunur.
+
+**Atəş ayrıca mesaj deyil.** `InputCommand`-dakı `PrimaryFire` biti və
+yaw/pitch kifayətdir; server istiqaməti özü hesablayır. Beləliklə client
+"mən vurdum" deyə bilmir (PRD 46).
+
 ## 3. Network dövrəsi (PRD 42–45)
 
 | Mərhələ | Yer | Qeyd |
@@ -79,7 +105,37 @@ onu Godot olmadan yükləməsinə imkan verir.
 | `Models/WeaponData.cs` | 16–17 | Silah statları + deterministik recoil pattern |
 | `Models/PlayerState.cs` | 20, 53 | Server-authoritative oyunçu vəziyyəti |
 | `Net/NetworkProtocol.cs` | 41, 46, 102 | Mesaj növləri, InputCommand, versiya qapısı |
+| `Net/PacketCodec.cs` | 41, 46, 102 | Wire protokolu — encode/decode, ox klampı |
+| `Net/Snapshot.cs`, `SnapshotSerializer.cs` | 44 | Kompakt binar snapshot formatı |
+| `Gameplay/MovementSimulation.cs` | 11, 12, 43 | Deterministik hərəkət — client və serverdə eyni kod |
+| `Gameplay/HitScan.cs` | 19, 46 | Hitbox həndəsəsi (Godot-suz, test olunan) |
+| `Gameplay/LagCompensationBuffer.cs` | 45 | 200 ms mövqe tarixçəsi + rewind |
 | `Config/WeaponCatalog.cs` | 155 | JSON-dan silah yükləmə |
+
+## 4b. Prediction / reconciliation dövrəsi (PRD 43)
+
+`MovementSimulation.Step()` client-də və serverdə **eyni koddur**. Axın:
+
+```text
+Client                                    Server
+------                                    ------
+input yığılır (sequence N)
+  ├─ serverə göndərilir  ──────────────>  növbəyə qoyulur (tick başına maks 4)
+  ├─ dərhal lokal tətbiq (prediction)     Step() + MoveAndSlide()
+  └─ tarixçəyə yazılır                    mövqe lag-comp buferinə yazılır
+                                          snapshot-da ackSeq = N qaytarılır
+  <──────────────────────────────── snapshot
+  ackSeq-ə qədər input-lar tarixçədən silinir
+  fərq > 8 sm-dirsə:
+    server mövqeyinə qayıt
+    YALNIZ təsdiqlənməmiş input-ları yenidən oynat
+```
+
+`ackSeq` snapshot-un binar formatında hər oyunçu üçün daşınır — bu olmasaydı
+client bütün tarixçəni yenidən oynadardı və düzəliş sıçrayışlı olardı.
+
+Kolliziya hələ mühərrikdədir (`MoveAndSlide`), simulyasiya isə shared-dədir.
+Tam deterministik kolliziya Phase 2-də shared-ə köçürüləcək.
 
 ## 5. Konfiqurasiya (PRD 155)
 
