@@ -30,6 +30,13 @@ public sealed partial class NetworkClient : Node
     public delegate void DamageReceivedEventHandler(int victimPeerId, int attackerPeerId, int hitBox, int healthDamage, bool killed);
 
     [Signal]
+    public delegate void ShotFiredEventHandler(
+        int shooterPeerId, Vector3 origin, Vector3 end, float punchPitch, float punchYaw, int shotIndex, bool hit);
+
+    [Signal]
+    public delegate void WeaponStateReceivedEventHandler(int magazine, int reserve, bool reloading);
+
+    [Signal]
     public delegate void DisconnectedEventHandler();
 
     /// <summary>Serverin bizə verdiyi peer id — handshake-dən sonra dolur.</summary>
@@ -168,6 +175,30 @@ public sealed partial class NetworkClient : Node
             case MessageType.WorldSnapshot:
                 EmitSignal(SignalName.SnapshotReceived, payload.ToArray());
                 break;
+
+            case MessageType.ShotFired:
+            {
+                (int shooter, System.Numerics.Vector3 origin, System.Numerics.Vector3 end,
+                    float punchPitch, float punchYaw, int shotIndex, bool hit) = PacketCodec.DecodeShotFired(payload);
+
+                EmitSignal(
+                    SignalName.ShotFired,
+                    shooter,
+                    new Vector3(origin.X, origin.Y, origin.Z),
+                    new Vector3(end.X, end.Y, end.Z),
+                    punchPitch,
+                    punchYaw,
+                    shotIndex,
+                    hit);
+                break;
+            }
+
+            case MessageType.WeaponState:
+            {
+                (int magazine, int reserve, bool reloading) = PacketCodec.DecodeWeaponState(payload);
+                EmitSignal(SignalName.WeaponStateReceived, magazine, reserve, reloading);
+                break;
+            }
 
             case MessageType.PlayerDamaged:
             case MessageType.PlayerKilled:

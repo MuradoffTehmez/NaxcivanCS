@@ -1,6 +1,5 @@
 using System.Numerics;
 using NaxcivanCS.Server.Players;
-using NaxcivanCS.Shared.AntiCheat;
 using NaxcivanCS.Shared.Enums;
 using NaxcivanCS.Shared.Gameplay;
 using NaxcivanCS.Shared.Models;
@@ -9,75 +8,70 @@ namespace NaxcivanCS.Server.Damage;
 
 /// <summary>Serverin hesabladığı atəş nəticəsi.</summary>
 public readonly record struct ShotResult(
-    bool Accepted,
     int? VictimPeerId,
     HitBox HitBox,
     int HealthDamage,
     int ArmorDamage,
     bool Killed,
-    Violation? Violation);
+    Vector3 Origin,
+    Vector3 End);
 
 /// <summary>
-/// PRD 45, 46, 47 - Atəşin serverdə validasiyası və hit hesablanması.
+/// PRD 45, 46 - Atəşin serverdə hesablanması.
 ///
-/// Client YALNIZ "atəş açdım + bu istiqamətə baxıram" deyir.
-/// Kimin vurulduğunu və neçə damage dəydiyini <b>server</b> hesablayır.
-/// Həndəsə <see cref="HitScan"/> (shared) sinfindədir — beləliklə unit testlərlə
-/// Godot-suz yoxlanıla bilir.
+/// <para>
+/// Client YALNIZ "tetik basılıdır + bu istiqamətə baxıram" deyir. Neçə güllə
+/// çıxdığını <see cref="WeaponRuntime"/>, kimin vurulduğunu isə bu sinif
+/// hesablayır.
+/// </para>
+///
+/// <para>
+/// <b>Fire-rate validasiyası burada yoxdur və olmamalıdır.</b> Kadensiya
+/// server tərəfdə struktur olaraq təmin olunur — client atəş sürətini
+/// dəyişdirə bilmir, ona görə aşkarlamağa ehtiyac qalmır. Əvvəlki dizayn
+/// hər input paketini atış cəhdi sayırdı və qanuni oyunçulara saniyədə
+/// onlarla yalançı pozuntu yazırdı (PRD 47, 48).
+/// </para>
 /// </summary>
 public sealed class HitValidator
 {
+    /// <summary>Güllənin maksimum uçuş məsafəsi (tracer üçün son nöqtə).</summary>
+    private const float MaxTraceDistance = 120f;
+
     private readonly WeaponData _weapon;
 
     public HitValidator(WeaponData weapon) => _weapon = weapon;
 
     /// <summary>
-    /// Atəşi qiymətləndirir. Fire-rate pozuntusu aşkarlanarsa atış rədd edilir
-    /// və <see cref="ShotResult.Violation"/> doldurulur (PRD 47, 48).
+    /// Bir güllənin nəticəsini hesablayır.
     /// </summary>
     /// <param name="shooter">Atıcı.</param>
-    /// <param name="aimDirection">Baxış istiqaməti.</param>
+    /// <param name="direction">Recoil və spread artıq tətbiq olunmuş istiqamət.</param>
     /// <param name="candidates">Potensial hədəflər.</param>
     /// <param name="serverTimeMs">Cari server vaxtı.</param>
     public ShotResult Evaluate(
         ServerPlayer shooter,
-        Vector3 aimDirection,
+        Vector3 direction,
         IEnumerable<ServerPlayer> candidates,
         double serverTimeMs)
     {
         ArgumentNullException.ThrowIfNull(shooter);
         ArgumentNullException.ThrowIfNull(candidates);
 
-        if (!shooter.State.IsAlive)
-        {
-            return new ShotResult(false, null, HitBox.Chest, 0, 0, false, null);
-        }
-
-        // PRD 47 - Mümkün olmayan atəş sürəti.
-        double sinceLastShot = (serverTimeMs - shooter.LastShotServerTimeMs) / 1000.0;
-        if (ServerValidators.IsImpossibleFireRate(sinceLastShot, _weapon.ShotInterval))
-        {
-            return new ShotResult(false, null, HitBox.Chest, 0, 0, false, Violation.ImpossibleFireRate);
-        }
-
-        shooter.LastShotServerTimeMs = serverTimeMs;
-        shooter.ShotsInBurst++;
-
-        // PRD 45 - Hədəfləri atıcının latency-si qədər geriyə sar.
-        double rewindTime = LagCompensationBuffer.ResolveRewindTime(serverTimeMs, shooter.LatencyMs);
-
         Vector3 origin = shooter.Movement.Position
             + new Vector3(0f, HitScan.EyeHeight(shooter.Movement.IsCrouching), 0f);
 
-        Vector3 direction = aimDirection.LengthSquared() > 1e-6f
-            ? Vector3.Normalize(aimDirection)
+        Vector3 normalized = direction.LengthSquared() > 1e-6f
+            ? Vector3.Normalize(direction)
             : -Vector3.UnitZ;
+
+        // PRD 45 - Hədəfləri atıcının latency-si qədər geriyə sar.
+        double rewindTime = LagCompensationBuffer.ResolveRewindTime(serverTimeMs, shooter.LatencyMs);
 
         ServerPlayer? closestVictim = null;
         float closestDistance = float.MaxValue;
         HitBox hitBox = HitBox.Chest;
 
-        // PRD 46 - Hədəf seçimi serverdə aparılır; client-in iddiası qəbul edilmir.
         foreach (ServerPlayer candidate in candidates)
         {
             if (candidate.PeerId == shooter.PeerId || !candidate.State.IsAlive)
@@ -89,7 +83,7 @@ public sealed class HitValidator
             Vector3 targetPosition = rewound?.Position ?? candidate.Movement.Position;
             bool crouching = rewound?.IsCrouching ?? candidate.Movement.IsCrouching;
 
-            HitScanResult scan = HitScan.Intersect(origin, direction, targetPosition, crouching);
+            HitScanResult scan = HitScan.Intersect(origin, normalized, targetPosition, crouching);
             if (!scan.Hit || scan.Distance >= closestDistance)
             {
                 continue;
@@ -102,7 +96,8 @@ public sealed class HitValidator
 
         if (closestVictim is null)
         {
-            return new ShotResult(true, null, HitBox.Chest, 0, 0, false, null);
+            return new ShotResult(
+                null, HitBox.Chest, 0, 0, false, origin, origin + (normalized * MaxTraceDistance));
         }
 
         DamageResult damage = DamageRules.Calculate(
@@ -114,12 +109,12 @@ public sealed class HitValidator
             closestVictim.State.ArmorType);
 
         return new ShotResult(
-            true,
             closestVictim.PeerId,
             hitBox,
             damage.HealthDamage,
             damage.ArmorDamage,
             damage.IsLethal,
-            null);
+            origin,
+            origin + (normalized * closestDistance));
     }
 }

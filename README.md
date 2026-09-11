@@ -63,10 +63,16 @@ dotnet test NaxcivanCS.sln
 
 ## Oyuna baxmaq
 
+![NaxcivanCS gunplay](docs/images/gunplay-0.3.0.png)
+
+*Atəş anı: muzzle flash, tracer, recoil-dən açılan crosshair, patron sayğacı.
+Güllənin hara getdiyini **server** hesablayır — ekranda gördüyünüz tracer
+serverin verdiyi nöqtələrdən qurulur (PRD 46, 156).*
+
 ![NaxcivanCS Prototype 0.1](docs/images/prototype-0.1.png)
 
-*Prototype 0.1 — block-out xəritə, düşmən oyunçu (narıncı) və HUD. PRD 5-ə görə
-oyunçular fonda itməməlidir: mühit qəsdən tutqundur, komanda rəngləri parlaqdır.*
+*Block-out xəritə və düşmən oyunçu (narıncı). PRD 5-ə görə oyunçular fonda
+itməməlidir: mühit qəsdən tutqundur, komanda rəngləri parlaqdır.*
 
 
 Ən sadə yol — bu, serveri arxa fonda qaldırır və oyun pəncərəsini açır:
@@ -91,6 +97,7 @@ Skriptlər Godot-u avtomatik tapır (PATH, `GODOT_BIN`, və ya winget qovluğu).
 | **W A S D** | Hərəkət |
 | **Mouse** | Baxış |
 | **Sol klik** | Atəş |
+| **R** | Reload |
 | **Space** | Tullanma |
 | **Ctrl** | Çömbəlmə |
 | **Shift** | Addımlama (səssiz, dəqiq) |
@@ -140,7 +147,9 @@ cd infrastructure && cp .env.example .env && docker compose up -d postgres redis
 | Anti-cheat: fire-rate, speed, ox klampı | ✅ suspicion scoring ilə |
 | Snapshot interpolation | ✅ ~32 Hz |
 | HUD: can, zireh, ping, crosshair | ✅ prototype səviyyəsi |
-| Silah modelləri, səs, effektlər | ⬜ |
+| Silah view model, recoil, muzzle flash, tracer | ✅ |
+| Patron, reload, hit marker, dinamik crosshair | ✅ |
+| Atəş/vurulma **səsləri** | ⬜ növbəti |
 | Round sistemi, bomba, economy | ⬜ Phase 2–3 |
 
 ## Development prioriteti (PRD 151)
