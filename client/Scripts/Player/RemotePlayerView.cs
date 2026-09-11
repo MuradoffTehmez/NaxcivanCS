@@ -23,11 +23,18 @@ public sealed partial class RemotePlayerView : Node3D
     /// <summary>Saxlanan maksimum snapshot sayı (~1 saniyə, 32 Hz-də).</summary>
     private const int MaxSamples = 40;
 
+    private readonly FootstepTracker _footsteps = new();
+
     private MeshInstance3D? _body;
+    private double _lastInterpolateMs;
 
     public int PeerId { get; private set; }
 
     public Team Team { get; private set; } = Team.None;
+
+    /// <summary>PRD 83 - Bu oyunçu addım səsi çıxarmalıdırmı (bu kadrda).</summary>
+    [Signal]
+    public delegate void FootstepEventHandler(Vector3 position);
 
     public int Health { get; private set; } = GameConstants.MaxHealth;
 
@@ -97,6 +104,10 @@ public sealed partial class RemotePlayerView : Node3D
             return;
         }
 
+        double deltaMs = _lastInterpolateMs > 0 ? renderTimeMs - _lastInterpolateMs : 0;
+        _lastInterpolateMs = renderTimeMs;
+        Vector3 previousPosition = GlobalPosition;
+
         if (_samples.Count == 1 || renderTimeMs <= _samples[0].ServerTimeMs)
         {
             ApplySample(_samples[0]);
@@ -131,7 +142,31 @@ public sealed partial class RemotePlayerView : Node3D
                 0f);
 
             UpdateHeight(t < 0.5f ? older.IsCrouching : newer.IsCrouching);
+            CheckFootstep(previousPosition, deltaMs, t < 0.5f ? older.IsCrouching : newer.IsCrouching);
             return;
+        }
+    }
+
+    /// <summary>
+    /// PRD 83 - Addım səsi interpolyasiya olunmuş mövqedən çıxarılır.
+    /// Server ayrıca addım hadisəsi göndərmir: mövqelər onsuz da
+    /// server-authoritative-dir, ona görə oyunçu öz addımını gizlədə bilmir.
+    /// </summary>
+    private void CheckFootstep(Vector3 previousPosition, double deltaMs, bool crouching)
+    {
+        if (deltaMs <= 0 || !IsAlive)
+        {
+            return;
+        }
+
+        // Yerdə olub-olmadığını snapshot daşımır; hündürlük dəyişmirsə yerdədir.
+        bool grounded = Mathf.Abs(GlobalPosition.Y - previousPosition.Y) < 0.08f;
+
+        var position = new System.Numerics.Vector3(GlobalPosition.X, GlobalPosition.Y, GlobalPosition.Z);
+
+        if (_footsteps.Update(position, (float)(deltaMs / 1000.0), grounded, crouching))
+        {
+            EmitSignal(SignalName.Footstep, GlobalPosition);
         }
     }
 

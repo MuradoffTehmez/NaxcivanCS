@@ -38,6 +38,8 @@ public sealed partial class LocalPlayerController : CharacterBody3D
     /// <summary>Serverin spawn mövqeyi/bucağı tətbiq olunubmu.</summary>
     private bool _spawnApplied;
 
+    private readonly FootstepTracker _footsteps = new();
+
     private ViewModel? _viewModel;
     private Vector2 _lastMouseDelta;
 
@@ -165,6 +167,12 @@ public sealed partial class LocalPlayerController : CharacterBody3D
 
         UpdateCameraHeight();
 
+        // PRD 83 - Öz addım səsi. Shift ilə addımlayanda və çömbələndə səssizdir.
+        if (_footsteps.Update(ToNumerics(GlobalPosition), (float)delta, IsOnFloor(), _state.IsCrouching))
+        {
+            EmitSignal(SignalName.Footstep, GlobalPosition);
+        }
+
         // PRD 17 - Recoil vizual olaraq da sönür. Serverin dəqiq dəyəri növbəti
         // atəşdə gələcək; aradakı kadrlarda hamar qayıdış göstərilir.
         float recovery = RecoilCalculator.RecoveryDegreesPerSecond * (float)delta;
@@ -209,6 +217,10 @@ public sealed partial class LocalPlayerController : CharacterBody3D
     /// <summary>Muzzle-ın dünya mövqeyi — tracer buradan başlayır.</summary>
     public Vector3 MuzzleWorldPosition =>
         _viewModel?.MuzzleWorldPosition ?? GlobalPosition + new Vector3(0f, HitScan.EyeHeight(false), 0f);
+
+    /// <summary>PRD 83 - Oyunçu öz addım səsini eşidir.</summary>
+    [Signal]
+    public delegate void FootstepEventHandler(Vector3 position);
 
     /// <summary>Recoil-in maksimuma nisbəti — crosshair açılması üçün (PRD 79).</summary>
     public float RecoilRatio => Mathf.Clamp(
@@ -266,6 +278,7 @@ public sealed partial class LocalPlayerController : CharacterBody3D
             Rotation = new Vector3(0f, Mathf.DegToRad(authoritative.Yaw), 0f);
 
             _unacknowledgedInputs.Clear();
+            _footsteps.Reset();
             return;
         }
 

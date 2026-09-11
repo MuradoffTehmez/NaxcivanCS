@@ -55,3 +55,6 @@ desktop.ini
 
 # Debug ekran sekilleri (--screenshot ile alinanlar)
 /shot*.png
+
+# Debug audio dump (--dump-audio ile alinanlar)
+/audio-dump/
