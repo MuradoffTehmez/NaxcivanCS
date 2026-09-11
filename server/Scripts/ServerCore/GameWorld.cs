@@ -1,5 +1,4 @@
 using Godot;
-using NumVector3 = System.Numerics.Vector3;
 using NaxcivanCS.Server.Damage;
 using NaxcivanCS.Server.Players;
 using NaxcivanCS.Shared.AntiCheat;
@@ -9,6 +8,7 @@ using NaxcivanCS.Shared.Enums;
 using NaxcivanCS.Shared.Gameplay;
 using NaxcivanCS.Shared.Models;
 using NaxcivanCS.Shared.Net;
+using NumVector3 = System.Numerics.Vector3;
 
 namespace NaxcivanCS.Server.ServerCore;
 

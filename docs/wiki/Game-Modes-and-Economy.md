@@ -1,5 +1,7 @@
 # Oyun rejimləri, raund və economy
 
+> Gameplay/API nümunələri 0.2.2 tarixi snapshot-ına aiddir. Cari stable və unreleased dəyişikliklər üçün [README](../../README.md) və [CHANGELOG](../../CHANGELOG.md) əsasdır.
+
 **Bu səhifədəki Bomb/Defuse və economy bölmələri məhsul hədəfi və shared qaydalardır. Tam oynanıla bilən inteqrasiya 0.2.2-də yoxdur.**
 
 ## Hədəf: 5v5 Bomb/Defuse

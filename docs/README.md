@@ -14,4 +14,4 @@
 | [PRD](PRD.md) | Geniş məhsul tələbləri; bütövlükdə hazır funksiya siyahısı deyil |
 | [CONTRIBUTING](../CONTRIBUTING.md) | Töhfə qaydaları |
 
-Sənəd ziddiyyəti olduqda runtime davranışını kod/test ilə təsdiqləyin. Wiki 0.2.2 snapshot-ıdır; release mənbəyinə keçidlər sabit teqə bağlanır.
+Sənəd ziddiyyəti olduqda runtime davranışını kod/test ilə təsdiqləyin. Wiki-nin gameplay səhifələri 0.2.2 tarixi snapshot-ıdır; cari build üçün root README və CHANGELOG-a baxın. Development/release/test qaydaları aktualdır. Wiki export cari commit-ə bağlanır.

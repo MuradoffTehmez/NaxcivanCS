@@ -45,7 +45,9 @@ Balans üçün JSON mənbəsinə üstünlük verin, amma yeni sahənin runtime-d
 
 ```bash
 dotnet build NaxcivanCS.sln -c Release
-dotnet test NaxcivanCS.sln -c Release --no-build
+dotnet test NaxcivanCS.sln -c Release --no-build --collect:"XPlat Code Coverage" --settings coverage.runsettings --results-directory TestResults
+dotnet format NaxcivanCS.sln --verify-no-changes --no-restore
+pwsh -NoProfile -File tools/check-coverage.ps1
 dotnet build server/NaxcivanCS.Server.csproj
 dotnet build client/NaxcivanCS.Client.csproj
 bash tools/e2e-smoke-test.sh
@@ -61,7 +63,7 @@ Sənəd dəyişikliklərində `docs/wiki/` mənbəyini redaktə edin, lokal link
 
 ## Mənşə sertifikatı (DCO)
 
-Layihə **GNU GPLv3** altındadır. Töhfə verən öz kodunun müəllif hüququnu saxlayır,
+Layihə **GPL-3.0-or-later** altındadır. Töhfə verən öz kodunun müəllif hüququnu saxlayır,
 ona görə lisenziyanı sonradan dəyişmək üçün hər töhfə verənin razılığı lazım olacaq.
 Bunu idarə oluna bilən saxlamaq üçün hər commit [Developer Certificate of
 Origin 1.1](https://developercertificate.org/) ilə imzalanmalıdır.
@@ -75,6 +77,12 @@ git commit -s -m "feat(server): ..."
 Bu sətir o deməkdir ki, göndərdiyiniz kodu ya özünüz yazmısınız, ya da onu
 layihənin lisenziyası altında təqdim etmək hüququnuz var. Mənbəyi bilinməyən
 və ya uyğun olmayan lisenziyalı kod qəbul edilmir.
+
+DCO avtomatik yoxlanır: `Signed-off-by: Ad Soyad <email>` commit müəllifinin adı/email-i ilə uyğun olmalıdır. Bütün PR commit-ləri (merge və bot commit-ləri daxil) yoxlanır; yalnız son commit-ə sign-off əlavə etmək kifayət deyil. Standalone `DCO sign-off` ilə yanaşı artıq tələb olunan `Shared + Backend (build, test)` job-u da bu yoxlamanı icra edir; reviewer sayı artırılmır.
+
+Yalnız öz commit-inizdə unudulmuş sign-off üçün `git commit --amend --no-edit -s` istifadə edin. Başqasının adından sign-off yaratmayın. Müəllif `git config user.name` və `user.email` dəyərlərini düzgün təyin etməlidir. Tarixçə yenidən yazılarkən mövcud branch/force-push qaydalarına əməl edin.
+
+Lokal yoxlama: `pwsh -NoProfile -File tools/check-dco.ps1 -BaseSha <tam-base-SHA> -HeadSha <tam-head-SHA>`.
 
 SSH ilə commit imzalamaq üçün: `tools/setup-signing.ps1`.
 

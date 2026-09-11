@@ -1,5 +1,7 @@
 # Server əməliyyatları və Docker
 
+> Gameplay/API nümunələri 0.2.2 tarixi snapshot-ına aiddir. Cari stable və unreleased dəyişikliklər üçün [README](../../README.md) və [CHANGELOG](../../CHANGELOG.md) əsasdır.
+
 ## Lokal topologiya
 
 Client-lər birbaşa dedicated serverin UDP portuna qoşulur. Backend ayrıca HTTP prosesidir. PostgreSQL/Redis konteynerləri gələcək xidmətlər üçün başlanğıcdır; hazır API onların vəziyyətinə bağlı query etmir.
@@ -33,8 +35,8 @@ Compose DB/cache healthcheck gözləyir; bu, backend-də həmin data xidmətlər
 ## Game server image
 
 ```bash
-docker build -f infrastructure/docker/gameserver.dockerfile -t naxcivancs-server:0.2.2 .
-docker run --rm -p 27015:27015/udp naxcivancs-server:0.2.2
+docker build -f infrastructure/docker/gameserver.dockerfile -t naxcivancs-server:local .
+docker run --rm -p 27015:27015/udp naxcivancs-server:local
 ```
 
 Dockerfile Godot .NET və export templates yükləyir, Linux Server preset ilə export edir, config qovluğunu runtime-a kopyalayır. Bu yol repo tərəfindən təqdim edilir; 0.2.2 üçün ayrıca lokal Docker/export nəticəsi yalnız release hesabatında təsdiqlənibsə keçmiş sayılır. CI hazırda backend image build edir.

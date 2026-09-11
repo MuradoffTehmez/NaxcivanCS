@@ -1,5 +1,7 @@
 # Backend API
 
+> Gameplay/API nümunələri 0.2.2 tarixi snapshot-ına aiddir. Cari stable və unreleased dəyişikliklər üçün [README](../../README.md) və [CHANGELOG](../../CHANGELOG.md) əsasdır.
+
 ## Hazır xidmət
 
 ASP.NET Core minimal API health, versiya və in-memory server registry təqdim edir. Account/auth, stats, matchmaking, PostgreSQL və Redis inteqrasiyası yoxdur. Swagger/OpenAPI endpoint-i də hazır quruluşa əlavə edilməyib.

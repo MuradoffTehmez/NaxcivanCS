@@ -27,8 +27,9 @@ yoxlamalar yaşıl olduqda `release/*` vasitəsilə `main`-ə çıxarılır.
 ## Buraxılış addımları
 
 1. `develop`-dan `release/X.Y.Z` yarat.
-2. Versiyanı dörd yerdə qaldır: `Directory.Build.props`, `GameConstants.cs`
-   (`GameVersion` + `ContentVersion`), `client/project.godot`, `server/project.godot`.
+2. `Directory.Build.props`-da stable/build versiyalarını və tarixi hazırlayın;
+   `tools/sync-version.ps1` törəmə istinadları yeniləyir. Tam prosedur:
+   [RELEASING](../RELEASING.md).
 3. `ProtocolVersion`-a **yalnız** wire format dəyişibsə toxun. Dəyişibsə,
    köhnə client-lər rədd ediləcək — bunu buraxılış qeydlərində yaz.
 4. CHANGELOG-da `Buraxılmamış` bölməsini versiya başlığına çevir.
@@ -36,7 +37,7 @@ yoxlamalar yaşıl olduqda `release/*` vasitəsilə `main`-ə çıxarılır.
 6. `main`-ə və `develop`-a merge et.
 7. Teq: **prefikssiz** (`0.3.0`). İlk üç buraxılış `v` prefiksi ilədir; onlar
    tarix olaraq olduğu kimi qalır.
-8. `gh release create` ilə GitHub Release yarat və `--latest` təyin et.
+8. `release.yml` yoxlamaların ardından export, SBOM və checksum-ları GitHub Release-ə əlavə edir.
 9. **`develop`-u `main`-ə fast-forward et:**
 
    ```bash
@@ -61,6 +62,8 @@ yoxlamalar yaşıl olduqda `release/*` vasitəsilə `main`-ə çıxarılır.
 |---|---|---|
 | `ci.yml` | Build, testlər, Godot layihələri, e2e smoke test, Docker, sənəd linkləri | Hər push və PR |
 | `codeql.yml` | C# və Actions üçün statik təhlükəsizlik analizi | Push, PR, həftəlik |
+| `dco.yml` | Hər PR commit-in müəllif sign-off-u; mövcud required build job-unda da məcburidir | PR |
+| `release.yml` | Yoxlamalardan sonra Windows client/Linux server export, SBOM, checksum, GitHub Release | Teq/release |
 | `security.yml` | Zəif/köhnəlmiş paketlər, PR asılılıq nəzarəti, repo gigiyenası | Push, PR, həftəlik |
 
 ### Branch protection

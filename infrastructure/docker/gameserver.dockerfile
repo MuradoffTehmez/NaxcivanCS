@@ -1,11 +1,12 @@
 # PRD 99, 100, 101 - NaxcivanCS dedicated server konteyneri (Linux headless).
-# Qurulus:  docker build -f infrastructure/docker/gameserver.dockerfile -t naxcivancs-server:0.1.0 .
-# Isledilme: docker run --rm -p 27015:27015/udp naxcivancs-server:0.1.0
+# Qurulus:  docker build -f infrastructure/docker/gameserver.dockerfile -t naxcivancs-server:local .
+# Isledilme: docker run --rm -p 27015:27015/udp naxcivancs-server:local
 
 ARG GODOT_VERSION=4.7.2
 
 # ---------- 1) Godot headless export ----------
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+ARG DOTNET_SDK_VERSION=8.0.425
+FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_SDK_VERSION} AS build
 ARG GODOT_VERSION
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -30,8 +31,11 @@ RUN curl -fsSL -o /tmp/templates.tpz \
 WORKDIR /src
 COPY . .
 
-RUN godot --headless --path server --import \
- && godot --headless --path server --export-release "Linux Server" /out/NaxcivanCS.Server
+RUN mkdir -p /out/game \
+ && godot --headless --path server --import \
+ && godot --headless --path server --export-release "Linux Server" /out/game/NaxcivanCS.Server > /tmp/export.log 2>&1 \
+ && cat /tmp/export.log \
+ && ! grep -q '^ERROR:' /tmp/export.log
 
 # ---------- 2) Runtime ----------
 FROM mcr.microsoft.com/dotnet/runtime:8.0-jammy AS runtime
@@ -50,5 +54,5 @@ USER naxcivan
 # PRD 41, 42 - ENet/UDP, 64 tick
 EXPOSE 27015/udp
 
-ENTRYPOINT ["/app/NaxcivanCS.Server", "--headless", "--"]
+ENTRYPOINT ["/app/game/NaxcivanCS.Server", "--headless", "--"]
 CMD ["--port", "27015", "--map", "NC_Qala"]
