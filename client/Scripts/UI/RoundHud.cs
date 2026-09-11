@@ -22,12 +22,17 @@ public sealed partial class RoundHud : Control
 
     private static readonly Color AlphaColor = new("e0623c");
     private static readonly Color BravoColor = new("3f9ad6");
+    private static readonly Color BombColor = new("d9a441");
+    private static readonly Color DroppedColor = new("bdb6ab");
 
     private Label? _timer;
     private Label? _alphaScore;
     private Label? _bravoScore;
     private Label? _banner;
     private Label? _phase;
+
+    private Label? _bombStatus;
+    private ProgressBar? _bombProgress;
 
     private float _bannerRemaining;
     private RoundPhase _lastPhase = RoundPhase.Warmup;
@@ -46,6 +51,61 @@ public sealed partial class RoundHud : Control
         _banner = CreateLabel(new Vector2(-220f, -90f), LayoutPreset.Center, 26, Colors.White);
         _banner.Size = new Vector2(440f, 40f);
         _banner.HorizontalAlignment = HorizontalAlignment.Center;
+
+        // PRD 8 - Objective vəziyyəti ekranın aşağı mərkəzində, nişangahın altında.
+        _bombStatus = CreateLabel(new Vector2(-220f, -104f), LayoutPreset.CenterBottom, 18, BombColor);
+        _bombStatus.Size = new Vector2(440f, 24f);
+        _bombStatus.HorizontalAlignment = HorizontalAlignment.Center;
+        _bombStatus.Visible = false;
+
+        _bombProgress = new ProgressBar
+        {
+            MinValue = 0d,
+            MaxValue = 1d,
+            ShowPercentage = false,
+            MouseFilter = MouseFilterEnum.Ignore,
+            Visible = false,
+        };
+        _bombProgress.SetAnchorsAndOffsetsPreset(LayoutPreset.CenterBottom);
+        _bombProgress.Position += new Vector2(-110f, -78f);
+        _bombProgress.Size = new Vector2(220f, 10f);
+        AddChild(_bombProgress);
+    }
+
+    /// <summary>
+    /// PRD 8 - Bomba vəziyyəti: daşıyıcı, plant/defuse irəliləyişi və site.
+    /// </summary>
+    public void UpdateBomb(
+        BombState state, bool localPlayerCarries, float plantProgress, float defuseProgress, string site)
+    {
+        if (_bombStatus is null || _bombProgress is null)
+        {
+            return;
+        }
+
+        // Serverdən gələn irəliləyişin yalnız biri eyni anda aktiv ola bilər.
+        bool planting = state == BombState.Carried && plantProgress > 0f;
+        bool defusing = state == BombState.Planted && defuseProgress > 0f;
+
+        _bombProgress.Visible = planting || defusing;
+        _bombProgress.Value = planting ? plantProgress : defuseProgress;
+        _bombProgress.Modulate = defusing ? BravoColor : BombColor;
+
+        (string text, Color color) = state switch
+        {
+            BombState.Planted when defusing => ($"DEFUSE · {site}", BravoColor),
+            BombState.Planted => ($"BOMBA YERLƏŞDİRİLDİ · {site}", BombColor),
+            BombState.Defused => ("BOMBA ZƏRƏRSİZLƏŞDİRİLDİ", BravoColor),
+            BombState.Exploded => ("BOMBA PARTLADI", BombColor),
+            BombState.Dropped => ("BOMBA YERDƏDİR", DroppedColor),
+            BombState.Carried when planting => ("PLANT...", BombColor),
+            BombState.Carried when localPlayerCarries => ("BOMBA SƏNDƏDİR", BombColor),
+            _ => (string.Empty, Colors.White),
+        };
+
+        _bombStatus.Text = text;
+        _bombStatus.Modulate = color;
+        _bombStatus.Visible = text.Length > 0;
     }
 
     public void UpdateRound(

@@ -13,7 +13,8 @@ namespace NaxcivanCS.Shared.Constants;
 public static class GameConstants
 {
     // ---- PRD 102 - Versioning ----
-    public const int ProtocolVersion = 2;
+    // Protocol 3: BombStateChanged mesaji elave olundu (PRD 8).
+    public const int ProtocolVersion = 3;
     public const string GameVersion = "0.3.1-dev";
     public const string ContentVersion = "0.3.1-dev";
 
@@ -33,6 +34,18 @@ public static class GameConstants
     public const float PlantTimeSeconds = 3.2f;
     public const float DefuseTimeSeconds = 10f;
     public const float DefuseTimeWithKitSeconds = 5f;
+
+    /// <summary>Defuse üçün bombaya maksimum məsafə, metr.</summary>
+    public const float DefuseRadiusMeters = 1.6f;
+
+    /// <summary>Yerə düşmüş bombanı götürmək üçün maksimum məsafə, metr.</summary>
+    public const float BombPickupRadiusMeters = 1.4f;
+
+    /// <summary>
+    /// Basılı saxlanan düymənin input paketi gəlmədən neçə ms etibarlı qaldığı.
+    /// Unreliable input itkisini örtür, susmuş client-i isə örtmür.
+    /// </summary>
+    public const double HeldInputGraceMs = 250d;
 
     // ---- PRD 20 - Health / Armor ----
     public const int MaxHealth = 100;

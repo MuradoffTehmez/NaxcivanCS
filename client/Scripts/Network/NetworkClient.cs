@@ -48,6 +48,11 @@ public sealed partial class NetworkClient : Node
     public delegate void ScoreboardReceivedEventHandler(byte[] payload);
 
     [Signal]
+    public delegate void BombStateReceivedEventHandler(
+        int state, int carrierPeerId, Vector3 position, float plantProgress,
+        float defuseProgress, string plantedSite);
+
+    [Signal]
     public delegate void DisconnectedEventHandler();
 
     /// <summary>Serverin bizə verdiyi peer id — handshake-dən sonra dolur.</summary>
@@ -220,6 +225,23 @@ public sealed partial class NetworkClient : Node
             case MessageType.Scoreboard:
                 EmitSignal(SignalName.ScoreboardReceived, payload.ToArray());
                 break;
+
+            case MessageType.BombStateChanged:
+                {
+                    (BombState state, int carrier, System.Numerics.Vector3 position,
+                        float plantProgress, float defuseProgress, string site) =
+                            PacketCodec.DecodeBombState(payload);
+
+                    EmitSignal(
+                        SignalName.BombStateReceived,
+                        (int)state,
+                        carrier,
+                        new Vector3(position.X, position.Y, position.Z),
+                        plantProgress,
+                        defuseProgress,
+                        site);
+                    break;
+                }
 
             case MessageType.WeaponState:
                 {

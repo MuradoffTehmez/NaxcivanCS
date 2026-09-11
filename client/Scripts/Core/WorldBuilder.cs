@@ -25,6 +25,7 @@ public static class WorldBuilder
     private static readonly Color FloorDark = new("2b2a28");
     private static readonly Color FloorLight = new("3a3835");
     private static readonly Color StoneColor = new("6d675f");
+    private static readonly Color SiteColor = new("d9a4413c");
     private static readonly Color WoodColor = new("8a5f3a");
     private static readonly Color MetalColor = new("5d646c");
 
@@ -38,6 +39,39 @@ public static class WorldBuilder
         {
             AddBlock(root, block);
         }
+
+        foreach (BombSite site in BlockoutMap.Sites)
+        {
+            AddBombSite(root, site);
+        }
+    }
+
+    /// <summary>
+    /// PRD 8, 33 - Objective sahəsinin görünən işarəsi.
+    ///
+    /// Kolliziyası yoxdur: sahə yalnız plant qaydası üçün məntiqi zonadır,
+    /// oyunçunun hərəkətinə mane olmamalıdır. Yerdə nazik rəngli lövhə kimi
+    /// çəkilir ki, hansı zonada plant edilə biləcəyi aydın olsun.
+    /// </summary>
+    private static void AddBombSite(Node3D root, BombSite site)
+    {
+        var marker = new MeshInstance3D
+        {
+            Name = $"Site_{site.Name}",
+            Mesh = new BoxMesh { Size = new Vector3(site.Size.X, 0.04f, site.Size.Z) },
+            Position = new Vector3(site.Center.X, 0.02f, site.Center.Z),
+            MaterialOverride = new StandardMaterial3D
+            {
+                AlbedoColor = SiteColor,
+                Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+                EmissionEnabled = true,
+                Emission = SiteColor,
+                EmissionEnergyMultiplier = 0.35f,
+                Roughness = 1f,
+            },
+        };
+
+        root.AddChild(marker);
     }
 
     private static void AddLighting(Node3D root)

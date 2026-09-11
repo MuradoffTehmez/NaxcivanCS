@@ -20,6 +20,8 @@ Mövcud Shared.Tests saxlanır. Round/scoreboard wire round-trip, UTF-8, truncat
 
 Server.Tests Godot-dan asılı olmayan `ServerPlayer.cs` və `HitValidator.cs` fayllarını link vasitəsilə birbaşa compile edir. Runtime faylları köçürülmür. Input flood limiti, köhnə sequence, damage/respawn/snapshot, ən yaxın canlı hədəf, lag rewind və miss davranışı yoxlanır.
 
+`BombDirectorTests` PRD 8 qaydalarını örtür: site daxilində/xaricində plant, aktiv olmayan fazada rədd, interact buraxıldıqda və site-dan çıxdıqda irəliləyişin sıfırlanması, daşıyıcı ölümündə bombanın düşməsi, yalnız hücum edənin götürə bilməsi, kitli/kitsiz defuse müddəti, müdafiəçi dəyişdikdə defuse-un yenidən başlaması, məsafə limiti, partlayış və wire round-trip. İrəliləyiş float olaraq toplandığı üçün tamamlanma testlərinə bir tick tolerantlıq verilir.
+
 `coverlet.collector` Cobertura XML yaradır. `tools/check-coverage.ps1` source path + line üzrə hesabatları birləşdirir və Shared, Backend, test olunan server siniflərinin **hər biri üçün minimum 70% line coverage** tələb edir. Test kodu və generasiya olunan kod sayılmır. Bu faiz bütün Godot render/ENet/runtime coverage-si deyil. Hesabat yoxdursa gate uğursuz olur. Lokal ölçmələr üçün təmiz nəticə qovluğu seçin; əvvəlki run-ların coverage-si qarışdırılmamalıdır.
 
 CI XML/TRX və `coverage-summary.md` fayllarını artifact kimi saxlayır. Coverage/DCO/versiya/lisenziya skriptlərinin müsbət və mənfi halları `tools/test-quality-gates.ps1` ilə yoxlanır.
@@ -46,6 +48,11 @@ Link aləti relative fayl/link hədəflərini və kod çəpərlərinin bağlanma
 | Avtomatik reload | Boş şarjor və reserve varsa başlayır |
 | Damage | Server health dəyişir, shooter hitmarker görür |
 | Ölüm/respawn | main-də növbəti round başında health 100, armor 0; stable tarixçədə auto-respawn |
+| Bomba plant | Alpha oyunçusu A/B site-da E saxlayır; 3.2 s sonra faza BombPlanted olur, taymer 40 s-ə keçir |
+| Plant kəsilməsi | Site-dan çıxmaq və ya E-ni buraxmaq progress bar-ı sıfırlayır |
+| Bomba düşməsi | Daşıyıcı öləndə HUD "BOMBA YERDƏDİR" göstərir; başqa Alpha yaxınlaşıb götürür |
+| Defuse | Bravo oyunçusu bombanın yanında E saxlayır; 10 s sonra round müdafiənin xeyrinə bitir |
+| Partlayış | Defuse olunmazsa 40 s sonra round hücumun xeyrinə bitir |
 | Disconnect | Qarşı tərəfdə remote model silinir |
 
 Ammo UI, occlusion və digər [known issue](KNOWN_ISSUES.md)-lar hesabatda ayrıca qeyd edilməlidir. Testin “keçdi” statusu müşahidə edilən meyara bağlıdır; tamamlanmamış funksiyaya yaşıl status verilməməlidir.

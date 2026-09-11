@@ -17,6 +17,8 @@ Bu jurnaldakı heç bir yazı prototipin production-ready olması demək deyil.
 - Bütün mənbə fayllarında REUSE/SPDX başlığı; `.editorconfig` şablonu ilə `dotnet format` avtomatik yazır və CI header-siz faylı rədd edir.
 - `global.json` `rollForward: latestFeature` — .NET 8 pin-i saxlanır, 8.0 daxilində patch yeniləmələrinə icazə verilir.
 - DCO yoxlaması merge commit-lərini keçir: `develop → main` buraxılış axını əvvəllər imzalana bilməyən merge commit-lərinə görə bloklanırdı.
+- **Bomb/Defuse (PRD 8).** `BombDirector` — shared-də saf state machine: A/B site zonaları, plant (3.2 s) və defuse (10 s, kit ilə 5 s), daşıyıcı ölümündə bombanın düşməsi və götürülməsi, plant/defuse mükafatları. Plant round taymerini bomba taymeri ilə əvəz edir; defuse roundu müdafiənin xeyrinə bitirir. Client-də objective HUD və site işarələri.
+- **Protokol 3.** `BombStateChanged` mesajı əlavə olundu; protocol 2 client-ləri qəbul edilmir.
 
 ### Əlavə edildi
 
