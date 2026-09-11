@@ -2,7 +2,7 @@
 [CmdletBinding()]
 param(
     [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9._/-]*$')]
-    [string]$SourceRef = '0.2.2',
+    [string]$SourceRef = 'main',
     [switch]$Publish
 )
 

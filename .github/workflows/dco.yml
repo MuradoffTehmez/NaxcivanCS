@@ -1,0 +1,30 @@
+name: DCO
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  dco:
+    name: DCO sign-off
+    runs-on: ubuntu-latest
+    steps:
+      # Read-only PR workflow; inspect the real PR head, not GitHub's synthetic merge.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Fetch PR commits
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: git fetch origin "refs/pull/${PR_NUMBER}/head"
+      - name: Verify author sign-offs
+        shell: pwsh
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: ./tools/check-dco.ps1 -BaseSha $env:BASE_SHA -HeadSha $env:HEAD_SHA

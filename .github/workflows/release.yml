@@ -1,0 +1,189 @@
+name: Release
+
+on:
+  push:
+    tags: ['[0-9]*']
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.event.release.tag_name || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate stable release tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Check tag, metadata and main ancestry
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name || github.ref_name }}
+        run: |
+          ./tools/sync-version.ps1 -Check -ReleaseTag $env:RELEASE_TAG
+          git merge-base --is-ancestor HEAD origin/main
+          if ($LASTEXITCODE) { throw 'Release commit must belong to main.' }
+
+  ci:
+    needs: validate
+    uses: ./.github/workflows/ci.yml
+
+  security:
+    needs: validate
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: ./.github/workflows/security.yml
+
+  codeql:
+    needs: validate
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    uses: ./.github/workflows/codeql.yml
+
+  export:
+    name: Export ${{ matrix.target }}
+    needs: [ci, security, codeql]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: client-windows-x64
+            project: client
+            preset: Windows Client
+            executable: NaxcivanCS.exe
+          - target: server-linux-x64
+            project: server
+            preset: Linux Server
+            executable: NaxcivanCS.Server
+    env:
+      GODOT_VERSION: 4.7.2
+      RELEASE_TAG: ${{ github.event.release.tag_name || github.ref_name }}
+      TARGET: ${{ matrix.target }}
+      PROJECT: ${{ matrix.project }}
+      PRESET: ${{ matrix.preset }}
+      EXECUTABLE: ${{ matrix.executable }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - name: Install Godot Mono and export templates
+        run: |
+          set -euo pipefail
+          base="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          editor="Godot_v${GODOT_VERSION}-stable_mono_linux_x86_64.zip"
+          templates="Godot_v${GODOT_VERSION}-stable_mono_export_templates.tpz"
+          mkdir -p "$RUNNER_TEMP/godot-download"
+          cd "$RUNNER_TEMP/godot-download"
+          curl -fsSLO "$base/$editor"
+          curl -fsSLO "$base/$templates"
+          curl -fsSLo SHA512-SUMS.txt "$base/SHA512-SUMS.txt"
+          grep -F " $editor" SHA512-SUMS.txt > selected-checksums.txt
+          grep -F " $templates" SHA512-SUMS.txt >> selected-checksums.txt
+          test "$(wc -l < selected-checksums.txt)" -eq 2
+          sha512sum --check selected-checksums.txt
+          unzip -q "$editor" -d "$RUNNER_TEMP"
+          unzip -q "$templates" -d "$RUNNER_TEMP/godot-templates"
+          template_dir="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable.mono"
+          mkdir -p "$template_dir"
+          cp -a "$RUNNER_TEMP/godot-templates/templates/." "$template_dir/"
+          echo "GODOT_BIN=$RUNNER_TEMP/Godot_v${GODOT_VERSION}-stable_mono_linux_x86_64/Godot_v${GODOT_VERSION}-stable_mono_linux.x86_64" >> "$GITHUB_ENV"
+      - name: Export and stage release
+        run: |
+          set -euo pipefail
+          package="$PWD/dist/NaxcivanCS-${RELEASE_TAG}-${TARGET}"
+          mkdir -p "$package/game"
+          "$GODOT_BIN" --headless --path "$PROJECT" --import
+          "$GODOT_BIN" --headless --path "$PROJECT" --export-release "$PRESET" "$package/game/$EXECUTABLE" 2>&1 | tee export.log
+          # Godot can return zero even if the .NET export plugin logged an error.
+          if grep -q '^ERROR:' export.log; then exit 1; fi
+          test -s "$package/game/$EXECUTABLE"
+          test -n "$(find "$package/game" -name 'NaxcivanCS.*.dll' -print -quit)"
+          cp -a config "$package/config"
+          cp LICENSE README.md "$package/"
+          printf '%s\n' "Source: https://github.com/${GITHUB_REPOSITORY}/tree/${GITHUB_SHA}" \
+            "License: GPL-3.0-or-later" > "$package/SOURCE.txt"
+      - name: Smoke test exported dedicated server
+        if: matrix.project == 'server'
+        run: |
+          package="$PWD/dist/NaxcivanCS-${RELEASE_TAG}-${TARGET}"
+          "$package/game/$EXECUTABLE" --headless -- --port 27016 --smoke-test-seconds 3 > export-smoke.log 2>&1
+          cat export-smoke.log
+          if grep -E 'ERROR|config tapılmadı' export-smoke.log; then exit 1; fi
+      - name: Generate SPDX SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+        with:
+          path: dist/NaxcivanCS-${{ env.RELEASE_TAG }}-${{ matrix.target }}
+          format: spdx-json
+          syft-version: v1.51.1
+          output-file: dist/NaxcivanCS-${{ env.RELEASE_TAG }}-${{ matrix.target }}.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+      - name: Archive complete export
+        run: |
+          cd dist
+          tar -czf "NaxcivanCS-${RELEASE_TAG}-${TARGET}.tar.gz" "NaxcivanCS-${RELEASE_TAG}-${TARGET}"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-${{ matrix.target }}
+          path: |
+            dist/*.tar.gz
+            dist/*.spdx.json
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: export-log-${{ matrix.target }}
+          path: |
+            export.log
+            export-smoke.log
+
+  publish:
+    name: Publish release assets
+    needs: [export]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ github.event.release.tag_name || github.ref_name }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: dist
+      - name: Create source archive and checksums
+        run: |
+          git archive --format=tar.gz --prefix="NaxcivanCS-${RELEASE_TAG}-source/" \
+            -o "dist/NaxcivanCS-${RELEASE_TAG}-source.tar.gz" HEAD
+          cd dist
+          sha256sum -- *.tar.gz *.spdx.json > SHA256SUMS.txt
+          sha256sum --check SHA256SUMS.txt
+      - name: Attach assets and publish
+        run: |
+          set -euo pipefail
+          if ! gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --verify-tag \
+              --draft --title "NaxcivanCS $RELEASE_TAG" --notes-file CHANGELOG.md
+          fi
+          gh release upload "$RELEASE_TAG" dist/* --repo "$GITHUB_REPOSITORY" --clobber
+          gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false

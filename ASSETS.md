@@ -13,7 +13,7 @@ NaxcivanCS öz vizual kimliyini yaradan müstəqil layihədir. PRD-dəki IP qayd
 | Oyun icon-u | client/icon.svg | Mənşə/lisenziya yekun paylamadan əvvəl yoxlanmalıdır |
 | Runtime asılılıqları | csproj, Dockerfile, CI | Öz upstream lisenziya və şərtlərinə tabedir |
 
-Bu cədvəl tam üçüncü tərəf hüquq auditi deyil. Proqram təminatı və mənbə kodu [GNU GPLv3](LICENSE) altında lisenziyalaşdırılır; oyun aktivləri və materialları isə müvafiq mənbə şərtlərinə tabedir.
+Bu cədvəl tam üçüncü tərəf hüquq auditi deyil. Proqram təminatı və mənbə kodu [GPL-3.0-or-later](LICENSE) altında lisenziyalaşdırılır; oyun aktivləri və materialları isə müvafiq mənbə şərtlərinə tabedir.
 
 ## Yeni asset qəbul edilərkən
 

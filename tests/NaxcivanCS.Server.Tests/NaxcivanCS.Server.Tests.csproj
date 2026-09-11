@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);CA1707</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.0" PrivateAssets="all" />
+    <PackageReference Include="coverlet.collector" Version="6.0.4" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../shared/NaxcivanCS.Shared/NaxcivanCS.Shared.csproj" />
+    <!-- Compile the actual Godot-free server sources without moving runtime code. -->
+    <Compile Include="../../server/Scripts/Players/ServerPlayer.cs" Link="Server/ServerPlayer.cs" />
+    <Compile Include="../../server/Scripts/Damage/HitValidator.cs" Link="Server/HitValidator.cs" />
+  </ItemGroup>
+</Project>

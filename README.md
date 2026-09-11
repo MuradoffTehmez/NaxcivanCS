@@ -1,6 +1,8 @@
 # NaxcivanCS
 
-**Buraxılış: 0.3.0** · **Build: 0.3.0** · **Protokol: 2** · **Mərhələ: oynanıla bilən prototip**
+**Stable release: 0.3.0** · **main build: 0.3.1-dev (unreleased)** · **Protokol: 2**
+
+Stable buraxılış audio/gunplay prototipidir. Aşağıdakı cədvəl `main` kodunu təsvir edir; round sistemi, round economy və scoreboard hələ buraxılmayıb. Versiya mənbəyi [Directory.Build.props](Directory.Build.props), sinxronizasiya qaydası [RELEASING](docs/RELEASING.md) sənədindədir.
 
 NaxcivanCS Naxçıvan memarlığı və coğrafiyasından ilhamlanan, Godot 4 .NET və C# ilə hazırlanan müstəqil taktiki FPS layihəsidir. Məhsulun hədəfi 5v5 Bomb/Defuse oyunudur. Hazırkı build lokal və şəbəkə üzərindən hərəkət, tüfənglə atəş, damage, ölüm və respawn sınağı üçündür; tam competitive oyun hələ hazır deyil.
 
@@ -8,11 +10,11 @@ NaxcivanCS Naxçıvan memarlığı və coğrafiyasından ilhamlanan, Godot 4 .NE
 
 ![Gunplay prototipi](docs/images/gunplay-0.3.0.png)
 
-*Şəkil gunplay inkişaf budağındandır; fayl adındakı 0.3.0 buraxılış nömrəsi deyil.*
+*Şəkil gunplay inkişafının tarixi görüntüsüdür; cari build-in bütün funksiyalarını göstərmir.*
 
 ## Hazırda nə var?
 
-| Sistem | 0.3.0 vəziyyəti |
+| Sistem | main vəziyyəti (unreleased daxil) |
 |---|---|
 | Dedicated server, ENet/UDP | 64 Hz simulyasiya, hər ikinci tick-də snapshot |
 | Hərəkət | Lokal prediction, server reconciliation, uzaq oyunçu interpolation |
@@ -30,7 +32,15 @@ NaxcivanCS Naxçıvan memarlığı və coğrafiyasından ilhamlanan, Godot 4 .NE
 
 ## Tez başlamaq
 
-Repo Godot **4.7.2 .NET/Mono** SDK-sına və `net8.0` hədəfinə qurulub. Godot-un adi, C# dəstəyi olmayan build-i uyğun deyil. CI .NET 8 SDK istifadə edir; lokal yoxlamada .NET 10 SDK və .NET 8 runtime da işlədilib.
+Repo Godot **4.7.2 .NET/Mono** SDK-sına və `net8.0` hədəfinə qurulub. Godot-un adi, C# dəstəyi olmayan build-i uyğun deyil. CI və lokal development [global.json](global.json)-dakı dəqiq .NET 8 SDK versiyasını tələb edir. `dotnet --version` ilə yoxlayın; yalnız .NET 10 SDK-nın olması kifayət etmir.
+`rollForward` söndürülüb, ona görə başqa SDK avtomatik əvəz etmir. Pinlənmiş SDK yoxdursa, sistemə toxunmadan istifadəçi qovluğuna qurula bilər:
+
+```bash
+curl -fsSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
+bash dotnet-install.sh --version 8.0.425
+```
+
+Windows PowerShell-də eyni iş `dotnet-install.ps1 -Version 8.0.425` ilə görülür.
 
 ```bash
 git clone https://github.com/MuradoffTehmez/NaxcivanCS.git
@@ -64,7 +74,7 @@ Godot avtomatik tapılmasa `GODOT_BIN`-i executable yoluna təyin edin. [Quraşd
 | Tab | Scoreboard |
 | Esc | Kursoru buraxmaq |
 
-Tab, B, E və G üçün input adları olsa da, tam scoreboard, alış, interaction və drop axınları hazır deyil. Shift üçün footstep səsi sistemi hələ yoxdur.
+`main`-də Tab scoreboard-u açır. B, E və G üçün alış, interaction və drop axınları hələ tamamlanmayıb. Shift ilə yavaş hərəkət səssizdir.
 
 ## Repo xəritəsi
 
@@ -95,9 +105,9 @@ Gameplay nəticəsinə server qərar verir. Client input göndərir; can, öldü
 
 ## Lisenziya və Müəlliflik Hüququ
 
-NaxcivanCS proqram təminatı və mənbə kodu **[GNU General Public License v3.0 (GPL-3.0)](LICENSE)** altında lisenziyalaşdırılır.
+NaxcivanCS proqram təminatı və mənbə kodu **[GNU General Public License v3.0 or later (GPL-3.0-or-later)](LICENSE)** altında lisenziyalaşdırılır.
 
-* Layihədən istifadə edən, onu dəyişdirən və ya yayan hər kəs törəmə mənbə kodunu da eyni lisenziya şərtləri ilə açıq saxlamalıdır.
+* SPDX-License-Identifier: `GPL-3.0-or-later`. GNU GPL-in 3-cü və ya seçiminizə görə sonrakı versiyasının şərtləri tətbiq olunur. Standart lisenziya mətni `LICENSE` faylında dəyişdirilmədən saxlanır.
 * Müəlliflik hüququ: © 2026 Tahmaz Muradov.
 * Layihəyə istinad: [CITATION.cff](CITATION.cff)
 * Üçüncü tərəf materialı əlavə etməzdən əvvəl mənşə və istifadə icazəsi qeyd edilməlidir; layihənin IP qaydası Valve/Counter-Strike xüsusi materiallarının icazəsiz köçürülməsini qəbul etmir ([ASSETS.md](ASSETS.md)).

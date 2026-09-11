@@ -5,6 +5,7 @@
 name: Security
 
 on:
+  workflow_call:
   push:
     branches: [main, develop]
   pull_request:
@@ -40,7 +41,7 @@ jobs:
           # Orta və yuxarı səviyyəli zəiflik PR-ı bloklayır.
           fail-on-severity: moderate
           comment-summary-in-pr: on-failure
-          # PRD 144 - GPLv3 layihəsinə uyğun gəlməyən lisenziyalar.
+          # PRD 144 - GPL-3.0-or-later layihəsinə uyğun gəlməyən lisenziyalar.
           # GPL-uyumlu olmayan copyleft və qeyri-azad lisenziyalar rədd edilir.
           deny-licenses: AGPL-3.0, SSPL-1.0, BUSL-1.1, Elastic-2.0
 
@@ -54,18 +55,22 @@ jobs:
 
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: '8.0.x'
+          global-json-file: global.json
 
       - name: Restore
         run: dotnet restore NaxcivanCS.sln
 
       - name: Scan for vulnerable packages
-        run: |
-          dotnet list NaxcivanCS.sln package --vulnerable --include-transitive 2>&1 | tee audit.log
-          if grep -q "has the following vulnerable packages" audit.log; then
-            echo "::error::Zəif paketlər tapıldı — audit.log-a baxın"
-            exit 1
-          fi
+        shell: pwsh
+        run: ./tools/check-vulnerabilities.ps1
+
+      - name: Upload dependency audit
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: dependency-audit
+          path: artifacts/security/
+          if-no-files-found: error
 
       - name: Scan for deprecated packages
         run: dotnet list NaxcivanCS.sln package --deprecated 2>&1 | tee deprecated.log

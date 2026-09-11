@@ -1,4 +1,4 @@
-**NaxcivanCS 0.2.2**
+**NaxcivanCS · 0.2.2 tarixi gameplay snapshot**
 
 [Baş səhifə](Home.md)
 

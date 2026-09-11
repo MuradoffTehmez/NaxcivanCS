@@ -1,5 +1,7 @@
 # Layihə analizi — 0.2.2
 
+> Bu sənəd 0.2.2 tarixi snapshot-ıdır. Cari stable və unreleased vəziyyət üçün [README](../README.md) və [CHANGELOG](../CHANGELOG.md) əsasdır.
+
 ## İcra xülasəsi
 
 NaxcivanCS işlək multiplayer prototip bazasına malikdir. Shared domain ayrılması, binar protokol, server authority, iki client smoke testi və yeni WeaponRuntime yaxşı inkişaf dayaqlarıdır. Məhsul tam 5v5 Bomb/Defuse kimi təqdim edilməməlidir: əsas raund, objective, inventory və online xidmət axınları hələ inteqrasiya olunmayıb.

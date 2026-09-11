@@ -1,0 +1,13 @@
+.git
+**/bin
+**/obj
+**/.godot
+**/TestResults
+artifacts
+build
+dist
+.env
+.env.*
+**/*.pfx
+**/*.key
+secrets

@@ -1,5 +1,7 @@
 # Tez-tez verilən suallar və terminlər
 
+> Gameplay/API nümunələri 0.2.2 tarixi snapshot-ına aiddir. Cari stable və unreleased dəyişikliklər üçün [README](../../README.md) və [CHANGELOG](../../CHANGELOG.md) əsasdır.
+
 ## Suallar
 
 **Oyun tam hazırdır?** Xeyr. 0.2.2 multiplayer gunplay prototipidir. Tam Bomb/Defuse, online hesablar və matchmaking yoxdur.
@@ -22,7 +24,7 @@
 
 **Bomba haradadır?** PRD və qaydalarda planlaşdırılıb; runtime objective yoxdur.
 
-**Açıq mənbə lisenziyası hansıdır?** Layihə [GNU General Public License v3.0 (GPL-3.0)](../../LICENSE) altında lisenziyalaşdırılıb. Bu, layihənin və onun törəmə kodlarının azad və açıq mənbə qalmasını təmin edir.
+**Açıq mənbə lisenziyası hansıdır?** Layihə [GNU General Public License v3.0 or later (GPL-3.0-or-later)](../../LICENSE) altında lisenziyalaşdırılıb. Bu, layihənin və onun törəmə kodlarının azad və açıq mənbə qalmasını təmin edir.
 
 ## Terminlər
 

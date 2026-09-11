@@ -1,5 +1,7 @@
 # Məlum problemlər və məhdudiyyətlər — 0.2.2
 
+> Bu sənəd 0.2.2 tarixi snapshot-ıdır. Cari stable və unreleased vəziyyət üçün [README](../README.md) və [CHANGELOG](../CHANGELOG.md) əsasdır.
+
 Bu siyahı kod baxışına əsaslanır. Buradakı hər müşahidə avtomatik testlə reproduksiya olunmuş bug demək deyil; yoxlama növü ayrıca göstərilir.
 
 | ID | Müşahidə və təsir | Sübut / yoxlama növü | Növbəti addım |
