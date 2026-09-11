@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use or reference NaxcivanCS, please cite it using this metadata."
+title: "NaxcivanCS"
+abstract: "Competitive multiplayer tactical FPS prototype developed with Godot 4 and C#, featuring a server-authoritative dedicated server model and binary network protocol."
+authors:
+  - family-names: "Muradov"
+    given-names: "Tahmaz"
+version: "0.2.2"
+date-released: "2026-09-11"
+license: "GPL-3.0-or-later"
+repository-code: "https://github.com/MuradoffTehmez/NaxcivanCS"
+keywords:
+  - "godot"
+  - "csharp"
+  - "fps"
+  - "dedicated-server"
+  - "netcode"
+  - "tactical-shooter"

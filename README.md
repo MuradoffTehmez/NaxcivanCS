@@ -1,171 +1,99 @@
 # NaxcivanCS
 
-> Competitive Multiplayer Tactical FPS — Godot 4 + C#, server-authoritative dedicated server.
+**Buraxılış: 0.2.2** · **Build: 0.2.2** · **Protokol: 2** · **Mərhələ: oynanıla bilən prototip**
 
-**Status:** Phase 1 — Prototype 0.1 (oynanıla bilən şəbəkə vertical slice)
-**Versiya:** 0.2.1
-**Sənəd:** [docs/PRD.md](docs/PRD.md)
+NaxcivanCS Naxçıvan memarlığı və coğrafiyasından ilhamlanan, Godot 4 .NET və C# ilə hazırlanan müstəqil taktiki FPS layihəsidir. Məhsulun hədəfi 5v5 Bomb/Defuse oyunudur. Hazırkı build lokal və şəbəkə üzərindən hərəkət, tüfənglə atəş, damage, ölüm və respawn sınağı üçündür; tam competitive oyun hələ hazır deyil.
 
----
+[Wiki](https://github.com/MuradoffTehmez/NaxcivanCS/wiki) · [Wiki-nin repodakı nüsxəsi](docs/wiki/Home.md) · [Dəyişikliklər](CHANGELOG.md) · [Texniki analiz](docs/PROJECT_ANALYSIS.md) · [Məhsul tələbləri](docs/PRD.md)
 
-## Nədir?
+![Gunplay prototipi](docs/images/gunplay-0.3.0.png)
 
-NaxcivanCS — 5v5 Bomb/Defuse rejimli, aşağı giriş baryerinə malik rəqabətli FPS.
-Naxçıvan memarlığı və coğrafiyasından ilhamlanan **original** xəritələr, öz vizual
-kimliyi və gameplay balansı ilə müstəqil məhsuldur (PRD 144 — heç bir Counter-Strike
-və ya Valve asset-i, kodu, xəritəsi istifadə edilmir).
+*Şəkil gunplay inkişaf budağındandır; fayl adındakı 0.3.0 buraxılış nömrəsi deyil.*
 
-Əsas texniki prinsip (PRD 156): **client heç vaxt gameplay nəticəsinin qərarvericisi deyil.**
+## Hazırda nə var?
 
-## Repozitoriya strukturu
-
-| Qovluq | Təyinat | PRD |
-|---|---|---|
-| `client/` | Godot 4 C# oyun client-i | 86 |
-| `server/` | Godot headless dedicated server | 87 |
-| `backend/` | ASP.NET Core API (accounts, stats, matchmaking) | 88 |
-| `shared/` | Client/server/backend arasında paylaşılan modellər, enum-lar, qaydalar | 153 |
-| `config/` | Silah balansı və server config (JSON — build dəyişmədən redaktə olunur) | 155 |
-| `localization/` | `az.json`, `en.json`, `ru.json` | 118 |
-| `infrastructure/` | Docker, docker-compose | 99–101 |
-| `tests/` | Unit testlər (economy, damage, match state, anti-cheat) | 124 |
-| `docs/` | PRD, arxitektura, yol xəritəsi | — |
-| `launcher/` | Gələcək launcher (Phase 8) | 103 |
-| `tools/` | Köməkçi skriptlər | — |
-
-## Tələblər
-
-| Alət | Versiya | Qeyd |
-|---|---|---|
-| .NET SDK | 8.0+ | Bütün C# layihələri `net8.0` hədəfləyir |
-| Godot | 4.7.2 **Mono/.NET** | Client və server üçün |
-| Docker | 24+ | Yalnız backend/gameserver konteyneri üçün — opsional |
-| PostgreSQL | 16 | Phase 4-dən etibarən |
-| Redis | 7 | Phase 5-dən etibarən |
-
-Godot quraşdırma (Windows):
-
-```bash
-winget install --id GodotEngine.GodotEngine.Mono --exact
-```
-
-## Başlanğıc
-
-Build və test:
-
-```bash
-dotnet build NaxcivanCS.sln
-```
-
-```bash
-dotnet test NaxcivanCS.sln
-```
-
-## Oyuna baxmaq
-
-![NaxcivanCS Prototype 0.1](docs/images/prototype-0.1.png)
-
-*Prototype 0.1 — block-out xəritə, düşmən oyunçu (narıncı) və HUD. PRD 5-ə görə
-oyunçular fonda itməməlidir: mühit qəsdən tutqundur, komanda rəngləri parlaqdır.*
-
-
-Ən sadə yol — bu, serveri arxa fonda qaldırır və oyun pəncərəsini açır:
-
-```bash
-tools/play.sh
-```
-
-İki pəncərə ilə (bir-birinizi görürsünüz):
-
-```bash
-tools/play.sh 2
-```
-
-Skriptlər Godot-u avtomatik tapır (PATH, `GODOT_BIN`, və ya winget qovluğu).
-
-### İdarəetmə
-
-| Düymə | Nə edir |
+| Sistem | 0.2.2 vəziyyəti |
 |---|---|
-| Pəncərəyə **klik** | Oyuna gir (kursor tutulur) |
-| **W A S D** | Hərəkət |
-| **Mouse** | Baxış |
-| **Sol klik** | Atəş |
-| **Space** | Tullanma |
-| **Ctrl** | Çömbəlmə |
-| **Shift** | Addımlama (səssiz, dəqiq) |
-| **Esc** | Kursoru burax |
+| Dedicated server, ENet/UDP | 64 Hz simulyasiya, hər ikinci tick-də snapshot |
+| Hərəkət | Lokal prediction, server reconciliation, uzaq oyunçu interpolation |
+| Gunplay | AR-9 Qartal, server kadensiyası, ammo, manual/avtomatik reload, deterministik recoil |
+| Vizual feedback | Prosedural silah modeli, muzzle flash, tracer, hitmarker, crosshair, HUD |
+| Damage və respawn | Server hitscan, 200 ms tarixçə, 100 HP, təxminən 3 saniyəlik respawn |
+| Backend | Health, versiya və yaddaşda saxlanan server registry |
+| Shared qaydalar | Silah kataloqu, damage, economy, match və suspicion qaydaları |
+| Hələ tamamlanmayıb | Bomb/Defuse, tam raund, alış, inventory, matchmaking, hesablar, səs, real xəritələr |
 
-### Ayrı-ayrı işə salmaq
+**Prototipin mühüm məhdudiyyətləri:** hitscan divar örtüyünü yoxlamır; friendly fire filtri qoşulmayıb; server_default.json runtime loader-ə bağlanmayıb. [Ətraflı məhdudiyyətlər](docs/KNOWN_ISSUES.md).
 
-Server (PRD 87 — headless):
+## Tez başlamaq
 
-```bash
-tools/run-server.sh
-```
-
-Client (başqa terminalda):
+Repo Godot **4.7.2 .NET/Mono** SDK-sına və `net8.0` hədəfinə qurulub. Godot-un adi, C# dəstəyi olmayan build-i uyğun deyil. CI .NET 8 SDK istifadə edir; lokal yoxlamada .NET 10 SDK və .NET 8 runtime da işlədilib.
 
 ```bash
-tools/run-client.sh Tahmaz
+git clone https://github.com/MuradoffTehmez/NaxcivanCS.git
+cd NaxcivanCS
+dotnet build NaxcivanCS.sln -c Release
+dotnet test NaxcivanCS.sln -c Release --no-build
+bash tools/play.sh 2
 ```
 
-End-to-end yoxlama (server + 2 client, headless, CI-də də işləyir):
+Windows-da son əmr üçün **Git Bash** lazımdır. `play.sh` Godot layihələrini özü build edir. Solution yalnız shared, backend və testləri ehtiva edir; client/server ayrıca yığılır.
 
 ```bash
-tools/e2e-smoke-test.sh
+dotnet build server/NaxcivanCS.Server.csproj
+dotnet build client/NaxcivanCS.Client.csproj
 ```
 
-Backend API:
+Godot avtomatik tapılmasa `GODOT_BIN`-i executable yoluna təyin edin. [Quraşdırma və PowerShell nümunələri](docs/wiki/Installation.md).
 
-```bash
-dotnet run --project backend/NaxcivanCS.Backend.Api
-```
+## İdarəetmə
 
-Backend + PostgreSQL + Redis (Docker):
-
-```bash
-cd infrastructure && cp .env.example .env && docker compose up -d postgres redis backend
-```
-
-## Hazırda nə işləyir
-
-| Sistem | Vəziyyət |
+| Düymə | Funksiya |
 |---|---|
-| ENet/UDP şəbəkə, binar protokol | ✅ 2 client e2e testdə |
-| Server-authoritative movement | ✅ prediction + reconciliation |
-| Hitscan + lag compensation (200 ms) | ✅ server hesablayır |
-| Damage, armor, hitbox multiplier | ✅ |
-| Death / respawn | ✅ |
-| Anti-cheat: fire-rate, speed, ox klampı | ✅ suspicion scoring ilə |
-| Snapshot interpolation | ✅ ~32 Hz |
-| HUD: can, zireh, ping, crosshair | ✅ prototype səviyyəsi |
-| Silah modelləri, səs, effektlər | ⬜ |
-| Round sistemi, bomba, economy | ⬜ Phase 2–3 |
+| Pəncərəyə sol klik | Kursoru tutmaq |
+| W / A / S / D | Hərəkət |
+| Mouse | Baxış |
+| Sol klik / basılı saxlamaq | Tüfənglə atəş |
+| R | Reload |
+| Space | Tullanmaq |
+| Ctrl | Çömbəlmək |
+| Shift | Yavaş hərəkət |
+| Esc | Kursoru buraxmaq |
 
-## Development prioriteti (PRD 151)
+Tab, B, E və G üçün input adları olsa da, tam scoreboard, alış, interaction və drop axınları hazır deyil. Shift üçün footstep səsi sistemi hələ yoxdur.
 
-```
-Networking → Movement → Gunplay → Hit Registration → Round Logic
-→ Bomb → Economy → Maps → Backend → Matchmaking → Ranking → Cosmetics
-```
+## Repo xəritəsi
 
-Store, skin, animasiya və vebsayt üzərində işləyib core gunplay-i gecikdirmək
-layihənin ən böyük riskidir.
+| Yol | Təyinat |
+|---|---|
+| `client/` | Godot səhnəsi, kamera, input, render, HUD və effektlər |
+| `server/` | Headless ENet server, simulyasiya, hitscan, oyunçu vəziyyəti |
+| `shared/` | Godot-dan asılı olmayan modellər, qaydalar və binar protokol |
+| `backend/` | ASP.NET Core minimal API |
+| `config/` | 8 silah JSON-u və gələcək server konfiqurasiyası |
+| `tests/` | xUnit testləri |
+| `infrastructure/` | Docker və lokal PostgreSQL/Redis servis tərifləri |
+| `localization/` | Azərbaycan, ingilis və rus dili resursları |
+| `tools/` | Build/oynatma/smoke test və Wiki nəşr skriptləri |
+| `docs/wiki/` | Oyunçu, proqramçı və operator üçün geniş Wiki |
 
-## Yol xəritəsi
+## Sənədlər
 
-Bax: [docs/ROADMAP.md](docs/ROADMAP.md) və [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+- [Oyunçu bələdçisi](docs/wiki/Player-Guide.md), [silahlar](docs/wiki/Weapons.md), [xəritələr](docs/wiki/Maps.md)
+- [Arxitektura](docs/ARCHITECTURE.md), [network protokolu](docs/wiki/Network-Protocol.md), [API](docs/wiki/Backend-API.md)
+- [Töhfə qaydaları](CONTRIBUTING.md), [təhlükəsizlik](SECURITY.md), [dəstək](SUPPORT.md)
+- [Test strategiyası](docs/TESTING.md), [buraxılış proseduru](docs/RELEASING.md), [yol xəritəsi](docs/ROADMAP.md)
+- [Davranış qaydaları](CODE_OF_CONDUCT.md), [asset və müəlliflik qeydləri](ASSETS.md)
 
-## Git workflow (PRD 122)
+## Layihənin prinsipləri
 
-```
-main ← release/* ← develop ← feature/* | fix/*
-```
+Gameplay nəticəsinə server qərar verir. Client input göndərir; can, öldürmə və mükafat tələb etmir. Məhsul vizyonu rəqabətə, aydın görünüşə və kosmetik monetizasiyaya əsaslanır; store və pay-to-win mexanizmləri bu build-də yoxdur.
 
-Hər dəyişiklik `develop`-dan branch edilir, PR açılır, CI keçir, sonra merge olunur.
+## Lisenziya və Müəlliflik Hüququ
 
-## Lisenziya və IP
+NaxcivanCS proqram təminatı və mənbə kodu **[GNU General Public License v3.0 (GPL-3.0)](LICENSE)** altında lisenziyalaşdırılır.
 
-NaxcivanCS müstəqil IP-dir. Counter-Strike xəritələrinin reproduksiyası, Valve
-asset-ləri, CS audio/logo/model-ləri və decompiled oyun kodu **qadağandır** (PRD 144).
+* Layihədən istifadə edən, onu dəyişdirən və ya yayan hər kəs törəmə mənbə kodunu da eyni lisenziya şərtləri ilə açıq saxlamalıdır.
+* Müəlliflik hüququ: © 2026 Tahmaz Muradov.
+* Layihəyə istinad: [CITATION.cff](CITATION.cff)
+* Üçüncü tərəf materialı əlavə etməzdən əvvəl mənşə və istifadə icazəsi qeyd edilməlidir; layihənin IP qaydası Valve/Counter-Strike xüsusi materiallarının icazəsiz köçürülməsini qəbul etmir ([ASSETS.md](ASSETS.md)).

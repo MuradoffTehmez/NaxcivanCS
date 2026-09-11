@@ -3,7 +3,7 @@ name: CI
 
 on:
   push:
-    branches: [main, develop, 'feature/**', 'fix/**', 'release/**']
+    branches: [main, develop, 'feature/**', 'fix/**', 'release/**', 'codex/**']
   pull_request:
     branches: [main, develop]
 
@@ -13,14 +13,28 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
 
 jobs:
+  documentation:
+    name: Documentation links and Wiki export
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check Markdown links
+        shell: pwsh
+        run: ./tools/check-doc-links.ps1
+      # SourceRef Wiki-dəki permalink-ləri qurur. Teqə bərkidilsə, növbəti
+      # buraxılışdan sonra linklər köhnə koda işarə edər — ona görə cari commit.
+      - name: Export Wiki without publishing
+        shell: pwsh
+        run: ./tools/publish-wiki.ps1 -SourceRef ${{ github.sha }}
+
   # PRD 123 - Backend: restore, build, test
   backend-and-shared:
     name: Shared + Backend (build, test)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '8.0.x'
 
@@ -39,7 +53,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results
           path: '**/*.trx'
@@ -49,9 +63,9 @@ jobs:
     name: Godot client + server (build)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '8.0.x'
 
@@ -68,15 +82,15 @@ jobs:
     env:
       GODOT_VERSION: 4.7.2
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '8.0.x'
 
       - name: Cache Godot
         id: godot-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/godot
           key: godot-mono-${{ env.GODOT_VERSION }}-linux
@@ -108,7 +122,7 @@ jobs:
     needs: [backend-and-shared]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Build backend image
         run: docker build -f infrastructure/docker/backend.dockerfile -t naxcivancs-backend:${{ github.sha }} .
@@ -118,9 +132,9 @@ jobs:
     name: Dependency audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '8.0.x'
 

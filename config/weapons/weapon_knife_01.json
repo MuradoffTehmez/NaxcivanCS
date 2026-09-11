@@ -5,6 +5,7 @@
   "damage": 42,
   "armorPenetration": 0.85,
   "fireRate": 120,
+  "automatic": false,
   "magazineSize": 0,
   "reserveAmmo": 0,
   "reloadTime": 0.0,

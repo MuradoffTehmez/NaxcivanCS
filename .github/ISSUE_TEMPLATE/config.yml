@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Təhlükəsizlik Zəifliyi Bildirişi
+    url: https://github.com/MuradoffTehmez/NaxcivanCS/security/policy
+    about: Zəiflik və təhlükəsizlik hesabatları üçün qaydalar
+  - name: NaxcivanCS Wiki və Sənədlər
+    url: https://github.com/MuradoffTehmez/NaxcivanCS/wiki
+    about: Quraşdırma, netcode, silahlar və sistem bələdçisi

@@ -1,5 +1,6 @@
 using Godot;
 using NaxcivanCS.Client.Network;
+using NaxcivanCS.Client.Weapons;
 using NaxcivanCS.Shared.Constants;
 using NaxcivanCS.Shared.Gameplay;
 using NaxcivanCS.Shared.Models;
@@ -37,11 +38,31 @@ public sealed partial class LocalPlayerController : CharacterBody3D
     /// <summary>Serverin spawn mövqeyi/bucağı tətbiq olunubmu.</summary>
     private bool _spawnApplied;
 
+    private ViewModel? _viewModel;
+    private Vector2 _lastMouseDelta;
+
+    /// <summary>
+    /// PRD 17 - Serverin verdiyi recoil sapması, YALNIZ vizual.
+    ///
+    /// <para>
+    /// Vacib: bu dəyər <see cref="_yawDegrees"/>/<see cref="_pitchDegrees"/>-ə
+    /// əlavə EDİLMİR. Serverə xam mouse bucağı göndərilir, server isə eyni
+    /// sapmanı özü əlavə edir. Əks halda recoil iki dəfə tətbiq olunardı.
+    /// Oyunçu mouse-u aşağı çəkərək kompensasiya edir — xam bucaq aşağı düşür,
+    /// sapma yuxarı qalxır, nəticə hədəfdə qalır (PRD 17).
+    /// </para>
+    /// </summary>
+    private float _visualPunchPitch;
+    private float _visualPunchYaw;
+
     /// <summary>Tarixçədə saxlanan maksimum input — həddindən artıq böyüməsin.</summary>
     private const int MaxUnacknowledgedInputs = 128;
 
     /// <summary>PRD 43 - Server düzəlişindən sonra neçə dəfə reconcile olduğunu sayır (debug).</summary>
     public int ReconciliationCount { get; private set; }
+
+    /// <summary>Debug: kursor tutulmadan atəş açır (--auto-fire).</summary>
+    public bool AutoFire { get; set; }
 
     public MovementState State => _state;
 
@@ -67,6 +88,9 @@ public sealed partial class LocalPlayerController : CharacterBody3D
         };
         AddChild(_camera);
 
+        _viewModel = new ViewModel { Name = "ViewModel" };
+        _camera.AddChild(_viewModel);
+
         _state = MovementState.AtSpawn(ToNumerics(GlobalPosition), 0f);
 
         // Kursor avtomatik tutulmur — oyunçu pəncərəyə klikləyəndə tutulur,
@@ -84,6 +108,7 @@ public sealed partial class LocalPlayerController : CharacterBody3D
     {
         if (@event is InputEventMouseMotion motion && Input.MouseMode == Input.MouseModeEnum.Captured)
         {
+            _lastMouseDelta = motion.Relative;
             _yawDegrees -= motion.Relative.X * _mouseSensitivity;
             _pitchDegrees = Mathf.Clamp(
                 _pitchDegrees - (motion.Relative.Y * _mouseSensitivity),
@@ -107,7 +132,7 @@ public sealed partial class LocalPlayerController : CharacterBody3D
     }
 
     /// <summary>Kursor tutulmayıbsa oyunçu hələ "oyunda" deyil — input göndərilmir.</summary>
-    private static bool IsPlaying => Input.MouseMode == Input.MouseModeEnum.Captured;
+    private bool IsPlaying => AutoFire || Input.MouseMode == Input.MouseModeEnum.Captured;
 
     public override void _PhysicsProcess(double delta)
     {
@@ -118,7 +143,7 @@ public sealed partial class LocalPlayerController : CharacterBody3D
 
         // Kursor buraxılıbsa neytral input göndərilir: server bizi simulyasiya
         // etməyə davam edir, amma təsadüfi hərəkət/atəş baş vermir.
-        Vector2 move = IsPlaying
+        Vector2 move = IsPlaying && !AutoFire
             ? Input.GetVector("move_left", "move_right", "move_forward", "move_backward")
             : Vector2.Zero;
 
@@ -139,6 +164,15 @@ public sealed partial class LocalPlayerController : CharacterBody3D
         }
 
         UpdateCameraHeight();
+
+        // PRD 17 - Recoil vizual olaraq da sönür. Serverin dəqiq dəyəri növbəti
+        // atəşdə gələcək; aradakı kadrlarda hamar qayıdış göstərilir.
+        float recovery = RecoilCalculator.RecoveryDegreesPerSecond * (float)delta;
+        _visualPunchPitch = Mathf.MoveToward(_visualPunchPitch, 0f, recovery);
+        _visualPunchYaw = Mathf.MoveToward(_visualPunchYaw, 0f, recovery);
+
+        _viewModel?.ApplySway(_lastMouseDelta, (float)delta);
+        _lastMouseDelta = _lastMouseDelta.Lerp(Vector2.Zero, 12f * (float)delta);
     }
 
     /// <summary>Eyni simulyasiya + mühərrik kolliziyası — serverlə eyni ardıcıllıq.</summary>
@@ -153,13 +187,32 @@ public sealed partial class LocalPlayerController : CharacterBody3D
         _state.Velocity = ToNumerics(Velocity);
         _state.IsGrounded = IsOnFloor();
 
-        Rotation = new Vector3(0f, Mathf.DegToRad(_state.Yaw), 0f);
+        // Bədən xam yaw-a, kamera isə xam + recoil sapmasına baxır.
+        Rotation = new Vector3(0f, Mathf.DegToRad(_state.Yaw - _visualPunchYaw), 0f);
 
         if (_camera is not null)
         {
-            _camera.Rotation = new Vector3(Mathf.DegToRad(_state.Pitch), 0f, 0f);
+            _camera.Rotation = new Vector3(Mathf.DegToRad(_state.Pitch + _visualPunchPitch), 0f, 0f);
         }
     }
+
+    /// <summary>PRD 17 - Serverdən gələn atəş: kamera kick + view model geri-təpmə.</summary>
+    public void OnShotFired(float punchPitch, float punchYaw)
+    {
+        _visualPunchPitch = punchPitch;
+        _visualPunchYaw = punchYaw;
+        _viewModel?.OnFired();
+    }
+
+    public void SetReloading(bool reloading) => _viewModel?.SetReloading(reloading);
+
+    /// <summary>Muzzle-ın dünya mövqeyi — tracer buradan başlayır.</summary>
+    public Vector3 MuzzleWorldPosition =>
+        _viewModel?.MuzzleWorldPosition ?? GlobalPosition + new Vector3(0f, HitScan.EyeHeight(false), 0f);
+
+    /// <summary>Recoil-in maksimuma nisbəti — crosshair açılması üçün (PRD 79).</summary>
+    public float RecoilRatio => Mathf.Clamp(
+        Mathf.Sqrt((_visualPunchPitch * _visualPunchPitch) + (_visualPunchYaw * _visualPunchYaw)) / 12f, 0f, 1f);
 
     /// <summary>PRD 43 - Server reconciliation.</summary>
     private void OnSnapshotReceived(byte[] payload)
@@ -248,7 +301,7 @@ public sealed partial class LocalPlayerController : CharacterBody3D
         _camera.Position = new Vector3(0f, Mathf.Lerp(_camera.Position.Y, target, 0.35f), 0f);
     }
 
-    private static InputButtons CollectButtons()
+    private InputButtons CollectButtons()
     {
         InputButtons buttons = InputButtons.None;
 
@@ -267,7 +320,7 @@ public sealed partial class LocalPlayerController : CharacterBody3D
             buttons |= InputButtons.Walk;
         }
 
-        if (Input.IsMouseButtonPressed(MouseButton.Left))
+        if (AutoFire || Input.IsMouseButtonPressed(MouseButton.Left))
         {
             buttons |= InputButtons.PrimaryFire;
         }
