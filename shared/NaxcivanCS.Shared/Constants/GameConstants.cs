@@ -11,8 +11,8 @@ public static class GameConstants
 {
     // ---- PRD 102 - Versioning ----
     public const int ProtocolVersion = 2;
-    public const string GameVersion = "0.2.2";
-    public const string ContentVersion = "0.2.2";
+    public const string GameVersion = "0.3.0";
+    public const string ContentVersion = "0.3.0";
 
     // ---- PRD 9 - Match strukturu (MR12) ----
     public const int PlayersPerTeam = 5;

@@ -1,8 +1,12 @@
 # Dəyişiklik jurnalı
 
-Bu jurnal tətbiq edilmiş dəyişiklikləri məhsulun gələcək planlarından ayırır. Git teqi `0.2.2`, proqram/content versiyası `0.2.2`-dır. Əvvəlki buraxılışların teqlərində `v` prefiksi var; bu buraxılışın teqi istifadəçinin istədiyi kimi `0.2.2`-dir. Bu, prototipin production-ready olması demək deyil.
+Bu jurnal tətbiq edilmiş dəyişiklikləri məhsulun gələcək planlarından ayırır. Cari git teqi `0.3.0`, proqram/content versiyası `0.3.0`-dır.
 
-## Buraxılmamış
+**Teq adlandırması:** ilk üç buraxılış `v` prefiksi ilə teqlənib (`v0.1.0`, `v0.2.0`, `v0.2.1`), `0.2.2`-dən etibarən prefikssiz davam edir. Bundan sonra prefikssiz forma standartdır; köhnə teqlər tarix olaraq olduğu kimi qalır.
+
+Bu jurnaldakı heç bir yazı prototipin production-ready olması demək deyil.
+
+## 0.3.0 — 2026-09-11
 
 ### Əlavə edildi
 
@@ -17,6 +21,7 @@ Bu jurnal tətbiq edilmiş dəyişiklikləri məhsulun gələcək planlarından 
 
 - CI-dəki Wiki export `0.2.2` teqinə deyil, cari commit-ə bağlandı — permalink-lər köhnəlmir.
 - Test asılılıqları yeniləndi (xunit 2.9.3, Test.Sdk 18.10.0, runner.visualstudio 4.0.0); GitHub Actions versiyaları artırıldı.
+- Oyun/content/build versiyası 0.3.0 oldu. **Protokol versiyası 2-də qalır** — bu buraxılışda yeni şəbəkə mesajı yoxdur, səs tamamilə client tərəfdə mövcud snapshot-lardan törədilir.
 
 ## 0.2.2 — 2026-09-11
 
