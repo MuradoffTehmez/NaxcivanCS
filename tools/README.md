@@ -12,7 +12,7 @@ Köməkçi skriptlər və development alətləri. Əmrləri repo kökündən iş
 | `check-doc-links.ps1` | Relative Markdown fayl linkləri və code fence yoxlaması |
 | `publish-wiki.ps1` | Wiki export; yalnız `-Publish` ilə GitHub-a push |
 
-PowerShell alətləri versiya 7 tələb edir. Link yoxlaması `rg` istifadə edir. Wiki publish əsas reponun Git müəllif məlumatını götürür, fresh clone yaradır və force-push/silinmə etmir.
+PowerShell alətləri versiya 7 tələb edir. Link yoxlaması `rg`, o yoxdursa `git ls-files` istifadə edir. Wiki publish əsas reponun Git müəllif məlumatını götürür, fresh clone yaradır və force-push/silinmə etmir.
 
 ```powershell
 pwsh -NoProfile -File tools/check-doc-links.ps1

@@ -5,8 +5,14 @@ param()
 $ErrorActionPreference = 'Stop'
 $repoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $failures = [System.Collections.Generic.List[string]]::new()
-$files = @(& rg --files --hidden -g '*.md' -g '!**/.git/**' $repoRoot)
-if ($LASTEXITCODE -ne 0) { throw 'Could not enumerate Markdown files with rg.' }
+if (Get-Command rg -ErrorAction SilentlyContinue) {
+    $files = @(& rg --files --hidden -g '*.md' -g '!**/.git/**' $repoRoot)
+} else {
+    # GitHub-hosted images do not necessarily include ripgrep.
+    $relativeFiles = @(& git -C $repoRoot -c core.quotepath=false ls-files --cached --others --exclude-standard -- '*.md')
+    $files = @($relativeFiles | ForEach-Object { Join-Path $repoRoot $_ })
+}
+if ($LASTEXITCODE -ne 0 -or !$files.Count) { throw 'Could not enumerate Markdown files.' }
 $linkCount = 0
 foreach ($file in $files) {
     $inFence = $false
