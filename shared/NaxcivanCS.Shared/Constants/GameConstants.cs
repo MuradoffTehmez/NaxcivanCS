@@ -14,9 +14,10 @@ public static class GameConstants
 {
     // ---- PRD 102 - Versioning ----
     // Protocol 3: BombStateChanged mesaji elave olundu (PRD 8).
-    public const int ProtocolVersion = 3;
-    public const string GameVersion = "0.3.1-dev";
-    public const string ContentVersion = "0.3.1-dev";
+    // Protocol 4: BuyRequest/BuyResult faktiki olaraq istifade olunur (PRD 27).
+    public const int ProtocolVersion = 4;
+    public const string GameVersion = "0.4.0";
+    public const string ContentVersion = "0.4.0";
 
     // ---- PRD 9 - Match strukturu (MR12) ----
     public const int PlayersPerTeam = 5;
@@ -58,6 +59,9 @@ public static class GameConstants
     public const int BombPlantTeamReward = 800;
     public const int BombPlantPlayerReward = 300;
     public const int BombDefusePlayerReward = 300;
+
+    /// <summary>PRD 27 - Defuse kit qiyməti.</summary>
+    public const int DefuseKitPrice = 400;
     public const int BombExplodedTeamReward = 3500;
 
     // ---- PRD 26 - Loss bonus pillələri ----

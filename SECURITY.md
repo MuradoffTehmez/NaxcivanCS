@@ -8,8 +8,8 @@ Cari stable buraxılış araşdırma və lokal/LAN test prototipidir. Tam authen
 
 | Versiya | Dəstəklənir | Qeyd |
 |---|---|---|
-| 0.3.0 | :white_check_mark: | Cari stable buraxılış |
-| < 0.3.0 | :x: | Köhnə prototiplər üçün dəstək verilmir |
+| 0.4.0 | :white_check_mark: | Cari stable buraxılış |
+| < 0.4.0 | :x: | Köhnə prototiplər üçün dəstək verilmir |
 
 Cari inkişaf bazası `main`-dir; buradakı unreleased kod stable buraxılış sayılmır. Əvvəlki teqlər üçün ayrıca təhlükəsizlik baxımı və cavab müddəti öhdəliyi elan edilməyib.
 

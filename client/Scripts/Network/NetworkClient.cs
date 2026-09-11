@@ -48,6 +48,9 @@ public sealed partial class NetworkClient : Node
     public delegate void ScoreboardReceivedEventHandler(byte[] payload);
 
     [Signal]
+    public delegate void BuyResultReceivedEventHandler(int item, int code, int money);
+
+    [Signal]
     public delegate void BombStateReceivedEventHandler(
         int state, int carrierPeerId, Vector3 position, float plantProgress,
         float defuseProgress, string plantedSite);
@@ -140,6 +143,10 @@ public sealed partial class NetworkClient : Node
             pitch,
             buttons);
 
+    /// <summary>PRD 27 - Alış sorğusu; nəticəni yalnız server təyin edir.</summary>
+    public void SendBuyRequest(BuyItem item)
+        => Send(PacketCodec.EncodeBuyRequest(item), reliable: true);
+
     public void SendInput(InputCommand input)
     {
         // Input-lar unreliable gedir: köhnəlmiş input-u yenidən göndərmək mənasızdır,
@@ -225,6 +232,13 @@ public sealed partial class NetworkClient : Node
             case MessageType.Scoreboard:
                 EmitSignal(SignalName.ScoreboardReceived, payload.ToArray());
                 break;
+
+            case MessageType.BuyResult:
+                {
+                    (BuyItem item, BuyResultCode code, int money) = PacketCodec.DecodeBuyResult(payload);
+                    EmitSignal(SignalName.BuyResultReceived, (int)item, (int)code, money);
+                    break;
+                }
 
             case MessageType.BombStateChanged:
                 {

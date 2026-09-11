@@ -31,11 +31,19 @@ RUN curl -fsSL -o /tmp/templates.tpz \
 WORKDIR /src
 COPY . .
 
+# Godot sifir exit kodu qaytarsa da .NET export plugin-i xeta yaza biler, ona
+# gore log yoxlanilir. Lakin headless konteynerde muhit xetalari (fontconfig,
+# xkb, DisplayServer) de "ERROR:" prefiksi ile cap olunur ve export neticesine
+# tesir etmir - onlar suzulur, eks halda hec bir export kece bilmez.
 RUN mkdir -p /out/game \
  && godot --headless --path server --import \
  && godot --headless --path server --export-release "Linux Server" /out/game/NaxcivanCS.Server > /tmp/export.log 2>&1 \
  && cat /tmp/export.log \
- && ! grep -q '^ERROR:' /tmp/export.log
+ && { grep '^ERROR:' /tmp/export.log || true; } \
+      | grep -vE 'fontconfig|xkbcommon|DisplayServer|OpenGL|Vulkan' > /tmp/export-errors.log \
+ ; if [ -s /tmp/export-errors.log ]; then echo 'Export xetalari:'; cat /tmp/export-errors.log; exit 1; fi \
+ && test -s /out/game/NaxcivanCS.Server \
+ && test -n "$(find /out/game -name 'NaxcivanCS.*.dll' -print -quit)"
 
 # ---------- 2) Runtime ----------
 FROM mcr.microsoft.com/dotnet/runtime:8.0-jammy AS runtime

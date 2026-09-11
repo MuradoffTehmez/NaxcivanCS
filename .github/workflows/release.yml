@@ -109,8 +109,17 @@ jobs:
           mkdir -p "$package/game"
           "$GODOT_BIN" --headless --path "$PROJECT" --import
           "$GODOT_BIN" --headless --path "$PROJECT" --export-release "$PRESET" "$package/game/$EXECUTABLE" 2>&1 | tee export.log
-          # Godot can return zero even if the .NET export plugin logged an error.
-          if grep -q '^ERROR:' export.log; then exit 1; fi
+          # Godot can return zero even if the .NET export plugin logged an
+          # error, so the log is inspected. Headless runners also emit
+          # environment errors (fontconfig, xkb, display/GPU) with the same
+          # "ERROR:" prefix; those do not affect the exported artifact.
+          { grep '^ERROR:' export.log || true; } \
+            | grep -vE 'fontconfig|xkbcommon|DisplayServer|OpenGL|Vulkan' > export-errors.log
+          if [ -s export-errors.log ]; then
+            echo '::error::Godot export reported errors'
+            cat export-errors.log
+            exit 1
+          fi
           test -s "$package/game/$EXECUTABLE"
           test -n "$(find "$package/game" -name 'NaxcivanCS.*.dll' -print -quit)"
           cp -a config "$package/config"
@@ -123,7 +132,22 @@ jobs:
           package="$PWD/dist/NaxcivanCS-${RELEASE_TAG}-${TARGET}"
           "$package/game/$EXECUTABLE" --headless -- --port 27016 --smoke-test-seconds 3 > export-smoke.log 2>&1
           cat export-smoke.log
-          if grep -E 'ERROR|config tapılmadı' export-smoke.log; then exit 1; fi
+          # Positive assertions first: the server must actually have booted and
+          # bound its port. A silent log is a failure, not a pass.
+          grep -q "NaxcivanCS Dedicated Server" export-smoke.log
+          grep -q "\[NetworkServer\] Port" export-smoke.log
+          # Godot prints environment and shutdown diagnostics with an "ERROR:"
+          # prefix (font/display probing, allocator and RID reports at exit).
+          # They do not indicate a failed run, so only the rest is fatal.
+          { grep "ERROR" export-smoke.log || true; } \
+            | grep -vE 'fontconfig|xkbcommon|DisplayServer|OpenGL|Vulkan' \
+            | grep -vE 'Unreferenced static string|RID allocations|Pages in use exist at exit' \
+            > smoke-errors.log
+          if [ -s smoke-errors.log ] || grep -q "config tapılmadı" export-smoke.log; then
+            echo '::error::Exported server smoke test reported errors'
+            cat smoke-errors.log
+            exit 1
+          fi
       - name: Generate SPDX SBOM
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
@@ -150,7 +174,9 @@ jobs:
           name: export-log-${{ matrix.target }}
           path: |
             export.log
+            export-errors.log
             export-smoke.log
+            smoke-errors.log
 
   publish:
     name: Publish release assets
