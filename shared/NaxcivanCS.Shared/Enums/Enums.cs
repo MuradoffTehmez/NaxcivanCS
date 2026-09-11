@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Tahmaz Muradov
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 namespace NaxcivanCS.Shared.Enums;
 
 /// <summary>PRD 7 - Iki faction.</summary>

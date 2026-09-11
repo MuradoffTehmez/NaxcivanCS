@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Tahmaz Muradov
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 using NaxcivanCS.Backend.Api.Contracts;
 using NaxcivanCS.Shared.Constants;
 

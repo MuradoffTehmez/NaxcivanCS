@@ -33,7 +33,7 @@ NaxcivanCS Naxçıvan memarlığı və coğrafiyasından ilhamlanan, Godot 4 .NE
 ## Tez başlamaq
 
 Repo Godot **4.7.2 .NET/Mono** SDK-sına və `net8.0` hədəfinə qurulub. Godot-un adi, C# dəstəyi olmayan build-i uyğun deyil. CI və lokal development [global.json](global.json)-dakı dəqiq .NET 8 SDK versiyasını tələb edir. `dotnet --version` ilə yoxlayın; yalnız .NET 10 SDK-nın olması kifayət etmir.
-`rollForward` söndürülüb, ona görə başqa SDK avtomatik əvəz etmir. Pinlənmiş SDK yoxdursa, sistemə toxunmadan istifadəçi qovluğuna qurula bilər:
+`rollForward: latestFeature` yalnız 8.0 daxilindəki daha yeni SDK-ya icazə verir; .NET 9/10 SDK bu pin-i əvəz etmir. Uyğun SDK yoxdursa, sistemə toxunmadan istifadəçi qovluğuna qurula bilər:
 
 ```bash
 curl -fsSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
@@ -107,7 +107,16 @@ Gameplay nəticəsinə server qərar verir. Client input göndərir; can, öldü
 
 NaxcivanCS proqram təminatı və mənbə kodu **[GNU General Public License v3.0 or later (GPL-3.0-or-later)](LICENSE)** altında lisenziyalaşdırılır.
 
-* SPDX-License-Identifier: `GPL-3.0-or-later`. GNU GPL-in 3-cü və ya seçiminizə görə sonrakı versiyasının şərtləri tətbiq olunur. Standart lisenziya mətni `LICENSE` faylında dəyişdirilmədən saxlanır.
+* SPDX-License-Identifier: `GPL-3.0-or-later`. GNU GPL-in 3-cü və ya seçiminizə görə sonrakı versiyasının şərtləri tətbiq olunur.
+* `LICENSE` kanonik GPL-3.0 mətni ilə **bayt-bayt eynidir** və dəyişdirilmir. Bu, GitHub-un lisenziyanı avtomatik tanıması üçün şərtdir; faylın sonundakı `<year>` / `<name of author>` sahələri GPL mətninin öz şablon bölməsidir və doldurulmur.
+* Müəlliflik və lisenziya məlumatı maşınoxunan formada hər mənbə faylının başlığındadır:
+
+  ```csharp
+  // SPDX-FileCopyrightText: 2026 Tahmaz Muradov
+  // SPDX-License-Identifier: GPL-3.0-or-later
+  ```
+
+  Şablon [.editorconfig](.editorconfig)-dədir; `dotnet format` onu avtomatik əlavə edir və CI header-siz faylı rədd edir.
 * Müəlliflik hüququ: © 2026 Tahmaz Muradov.
 * Layihəyə istinad: [CITATION.cff](CITATION.cff)
 * Üçüncü tərəf materialı əlavə etməzdən əvvəl mənşə və istifadə icazəsi qeyd edilməlidir; layihənin IP qaydası Valve/Counter-Strike xüsusi materiallarının icazəsiz köçürülməsini qəbul etmir ([ASSETS.md](ASSETS.md)).

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Tahmaz Muradov
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;

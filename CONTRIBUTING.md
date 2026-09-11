@@ -63,6 +63,14 @@ Sənəd dəyişikliklərində `docs/wiki/` mənbəyini redaktə edin, lokal link
 
 ## Mənşə sertifikatı (DCO)
 
+Yeni `.cs` faylı əlavə edərkən SPDX başlığı tələb olunur; `dotnet format` onu
+[.editorconfig](.editorconfig)-dəki şablondan avtomatik yazır, CI isə header-siz faylı rədd edir:
+
+```csharp
+// SPDX-FileCopyrightText: 2026 Tahmaz Muradov
+// SPDX-License-Identifier: GPL-3.0-or-later
+```
+
 Layihə **GPL-3.0-or-later** altındadır. Töhfə verən öz kodunun müəllif hüququnu saxlayır,
 ona görə lisenziyanı sonradan dəyişmək üçün hər töhfə verənin razılığı lazım olacaq.
 Bunu idarə oluna bilən saxlamaq üçün hər commit [Developer Certificate of

@@ -12,7 +12,7 @@ Branch modeli dəyişmir: `feature/*` / `fix/*` / `codex/*` → `develop` → `r
 
 Dəyərləri dəyişdikdən sonra `pwsh -NoProfile -File tools/sync-version.ps1` işlədin. Skript GameConstants, Godot layihələri, Windows numeric metadata, README, CITATION və SECURITY-ni sinxronlaşdırır. Bu törəmə istinadları ayrıca redaktə etməyin. CI `-Check` ilə drift-i rədd edir. Keçmiş CHANGELOG qeydləri və `RELEASE-0.2.2.md` kimi tarixi hesabatlar dəyişdirilmir.
 
-`ProtocolVersion` ayrıca wire compatibility müqaviləsidir; məhsul versiyası ilə avtomatik artırılmır. Wire dəyişiklikləri üçün köhnə client/server uyğunluğunu ayrıca yoxlayın. `global.json` SDK versiyasının mənbəyidir; Docker SDK default-ları da sinxronizasiya olunur. Lokal və CI SDK roll-forward etmir.
+`ProtocolVersion` ayrıca wire compatibility müqaviləsidir; məhsul versiyası ilə avtomatik artırılmır. Wire dəyişiklikləri üçün köhnə client/server uyğunluğunu ayrıca yoxlayın. `global.json` SDK versiyasının mənbəyidir; Docker SDK default-ları da sinxronizasiya olunur. `rollForward: latestFeature` 8.0 feature band-ları daxilində patch yeniləmələrinə icazə verir, lakin başqa major/minor SDK-ya keçmir; CI `setup-dotnet` ilə pinlənmiş dəqiq versiyanı quraşdırır.
 
 ## Stable release hazırlığı
 
