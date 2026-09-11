@@ -67,6 +67,25 @@ public enum BombState
     Exploded = 4,
 }
 
+/// <summary>PRD 27 - Alis menyusundan alina bilen esyalar.</summary>
+public enum BuyItem
+{
+    /// <summary>PRD 8 - Defuse muddetini yariya endirir.</summary>
+    DefuseKit = 0,
+}
+
+/// <summary>PRD 27 - Alis cehdinin neticesi.</summary>
+public enum BuyResultCode
+{
+    Purchased = 0,
+    NotInBuyPhase = 1,
+    WrongTeam = 2,
+    AlreadyOwned = 3,
+    NotEnoughMoney = 4,
+    PlayerDead = 5,
+    UnknownItem = 6,
+}
+
 /// <summary>PRD 14 - Silah kateqoriyaları (buy menu ilə eyni sıra, PRD 27).</summary>
 public enum WeaponCategory
 {

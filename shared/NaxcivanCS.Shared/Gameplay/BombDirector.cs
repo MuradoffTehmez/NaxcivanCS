@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 using System.Numerics;
+using NaxcivanCS.Shared.Config;
 using NaxcivanCS.Shared.Constants;
 using NaxcivanCS.Shared.Enums;
 
@@ -86,6 +87,17 @@ public sealed class BombDirector
     private readonly float _defuseWithKitSeconds;
     private readonly float _defuseRadius;
     private readonly float _pickupRadius;
+
+    /// <summary>PRD 10 - Server config-dən gələn dəyərlərlə qurur.</summary>
+    public BombDirector(RoundTimings timings)
+        : this(
+            (timings ?? RoundTimings.Defaults).PlantTimeSeconds,
+            (timings ?? RoundTimings.Defaults).DefuseTimeSeconds,
+            (timings ?? RoundTimings.Defaults).DefuseTimeWithKitSeconds,
+            (timings ?? RoundTimings.Defaults).DefuseRadiusMeters,
+            (timings ?? RoundTimings.Defaults).BombPickupRadiusMeters)
+    {
+    }
 
     public BombDirector(
         float plantSeconds = GameConstants.PlantTimeSeconds,

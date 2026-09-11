@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Tahmaz Muradov
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+using NaxcivanCS.Shared.Config;
 using NaxcivanCS.Shared.Constants;
 using NaxcivanCS.Shared.Enums;
 
@@ -40,14 +41,23 @@ public static class MatchRules
     public static bool IsSideSwapRound(int completedRounds)
         => completedRounds == HalftimeAfterRound;
 
-    /// <summary>PRD 10 - Round fazasının davam müddəti.</summary>
-    public static float PhaseDuration(RoundPhase phase) => phase switch
+    /// <summary>PRD 10 - Round fazasının kod default-u ilə müddəti.</summary>
+    public static float PhaseDuration(RoundPhase phase)
+        => PhaseDuration(phase, RoundTimings.Defaults);
+
+    /// <summary>PRD 10 - Round fazasının server config-dən gələn müddəti.</summary>
+    public static float PhaseDuration(RoundPhase phase, RoundTimings timings)
     {
-        RoundPhase.FreezeTime => GameConstants.FreezeTimeSeconds,
-        RoundPhase.BuyTime => GameConstants.BuyTimeSeconds,
-        RoundPhase.Active => GameConstants.RoundTimeSeconds,
-        RoundPhase.BombPlanted => GameConstants.BombTimerSeconds,
-        RoundPhase.RoundEnd => GameConstants.RoundEndDelaySeconds,
-        _ => 0f,
-    };
+        ArgumentNullException.ThrowIfNull(timings);
+
+        return phase switch
+        {
+            RoundPhase.FreezeTime => timings.FreezeTimeSeconds,
+            RoundPhase.BuyTime => timings.BuyTimeSeconds,
+            RoundPhase.Active => timings.RoundTimeSeconds,
+            RoundPhase.BombPlanted => timings.BombTimerSeconds,
+            RoundPhase.RoundEnd => timings.RoundEndDelaySeconds,
+            _ => 0f,
+        };
+    }
 }

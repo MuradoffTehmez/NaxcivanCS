@@ -5,6 +5,7 @@ using Godot;
 using NaxcivanCS.Client.Network;
 using NaxcivanCS.Client.Weapons;
 using NaxcivanCS.Shared.Constants;
+using NaxcivanCS.Shared.Enums;
 using NaxcivanCS.Shared.Gameplay;
 using NaxcivanCS.Shared.Models;
 using NaxcivanCS.Shared.Net;
@@ -133,6 +134,13 @@ public sealed partial class LocalPlayerController : CharacterBody3D
         if (@event.IsActionPressed("ui_cancel"))
         {
             Input.MouseMode = Input.MouseModeEnum.Visible;
+        }
+
+        // PRD 27 - Tam buy menyusu hələ yoxdur; B defuse kit sorğusu göndərir.
+        // Alışın mümkünlüyünü server qərara alır (PRD 156).
+        if (@event.IsActionPressed("buy_menu") && IsPlaying)
+        {
+            _network?.SendBuyRequest(BuyItem.DefuseKit);
         }
     }
 

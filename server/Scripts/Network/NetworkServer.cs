@@ -102,6 +102,10 @@ public sealed partial class NetworkServer : Node
                 HandleInput(senderId, PacketCodec.DecodeInput(payload));
                 break;
 
+            case MessageType.BuyRequest when _handshaked.ContainsKey(senderId):
+                HandleBuyRequest(senderId, PacketCodec.DecodeBuyRequest(payload));
+                break;
+
             case MessageType.Disconnect:
                 DropPlayer(senderId);
                 break;
@@ -227,6 +231,21 @@ public sealed partial class NetworkServer : Node
                 defuseProgress,
                 plantedSite),
             reliable: true);
+    }
+
+    /// <summary>
+    /// PRD 27 - Alış sorğusu. Qərarı YALNIZ server verir; nəticə sorğu
+    /// göndərən oyunçuya qaytarılır.
+    /// </summary>
+    private void HandleBuyRequest(int senderId, BuyItem item)
+    {
+        if (_world is null)
+        {
+            return;
+        }
+
+        (BuyResultCode code, int money) = _world.TryBuy(senderId, item);
+        Send(senderId, PacketCodec.EncodeBuyResult(item, code, money), reliable: true);
     }
 
     /// <summary>PRD 128 - Scoreboard round sonunda və round başında yenilənir.</summary>

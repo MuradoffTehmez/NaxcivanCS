@@ -313,6 +313,48 @@ public static class PacketCodec
             (RoundEndReason)payload[11]);
     }
 
+    // ------------------------------------------------------------------- Buy
+
+    /// <summary>PRD 27 - Alış sorğusu. [item u8]</summary>
+    public static byte[] EncodeBuyRequest(BuyItem item)
+        => Wrap(MessageType.BuyRequest, new[] { (byte)item });
+
+    public static BuyItem DecodeBuyRequest(ReadOnlySpan<byte> payload)
+    {
+        if (payload.Length < 1)
+        {
+            throw new ArgumentException("BuyRequest faydalı yükü natamamdır.", nameof(payload));
+        }
+
+        return (BuyItem)payload[0];
+    }
+
+    /// <summary>PRD 27 - Alış nəticəsi. [item u8][code u8][money i32]</summary>
+    public static byte[] EncodeBuyResult(BuyItem item, BuyResultCode code, int money)
+    {
+        var payload = new byte[1 + 1 + 4];
+        Span<byte> span = payload;
+
+        span[0] = (byte)item;
+        span[1] = (byte)code;
+        BinaryPrimitives.WriteInt32LittleEndian(span.Slice(2, 4), money);
+
+        return Wrap(MessageType.BuyResult, payload);
+    }
+
+    public static (BuyItem Item, BuyResultCode Code, int Money) DecodeBuyResult(ReadOnlySpan<byte> payload)
+    {
+        if (payload.Length < 6)
+        {
+            throw new ArgumentException("BuyResult faydalı yükü natamamdır.", nameof(payload));
+        }
+
+        return (
+            (BuyItem)payload[0],
+            (BuyResultCode)payload[1],
+            BinaryPrimitives.ReadInt32LittleEndian(payload.Slice(2, 4)));
+    }
+
     // ------------------------------------------------------------------ Bomb
 
     /// <summary>PRD 8 - Site adını bir bayta yığır; 0 = yerləşdirilməyib.</summary>

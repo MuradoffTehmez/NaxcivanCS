@@ -1,8 +1,8 @@
 # NaxcivanCS
 
-**Stable release: 0.3.0** · **main build: 0.3.1-dev (unreleased)** · **Protokol: 3**
+**Stable release: 0.4.0** · **main build: 0.4.0** · **Protokol: 4**
 
-Stable buraxılış audio/gunplay prototipidir. Aşağıdakı cədvəl `main` kodunu təsvir edir; round sistemi, round economy və scoreboard hələ buraxılmayıb. Versiya mənbəyi [Directory.Build.props](Directory.Build.props), sinxronizasiya qaydası [RELEASING](docs/RELEASING.md) sənədindədir.
+0.4.0 round sistemini, Bomb/Defuse obyektivini və server config-dən idarə olunan taymerləri gətirir. Aşağıdakı cədvəl bu buraxılışı təsvir edir. Versiya mənbəyi [Directory.Build.props](Directory.Build.props), sinxronizasiya qaydası [RELEASING](docs/RELEASING.md) sənədindədir.
 
 NaxcivanCS Naxçıvan memarlığı və coğrafiyasından ilhamlanan, Godot 4 .NET və C# ilə hazırlanan müstəqil taktiki FPS layihəsidir. Məhsulun hədəfi 5v5 Bomb/Defuse oyunudur. Hazırkı build lokal və şəbəkə üzərindən hərəkət, tüfənglə atəş, damage, ölüm və respawn sınağı üçündür; tam competitive oyun hələ hazır deyil.
 
@@ -14,7 +14,7 @@ NaxcivanCS Naxçıvan memarlığı və coğrafiyasından ilhamlanan, Godot 4 .NE
 
 ## Hazırda nə var?
 
-| Sistem | main vəziyyəti (unreleased daxil) |
+| Sistem | 0.4.0 vəziyyəti |
 |---|---|
 | Dedicated server, ENet/UDP | 64 Hz simulyasiya, hər ikinci tick-də snapshot |
 | Hərəkət | Lokal prediction, server reconciliation, uzaq oyunçu interpolation |
@@ -22,7 +22,8 @@ NaxcivanCS Naxçıvan memarlığı və coğrafiyasından ilhamlanan, Godot 4 .NE
 | Vizual feedback | Prosedural silah modeli, muzzle flash, tracer, hitmarker, crosshair, HUD |
 | Damage və respawn | Server hitscan, 200 ms tarixçə, 100 HP; respawn round başında |
 | Round sistemi | Freeze/Buy/Active/RoundEnd, MR12 skor, side swap, round economy |
-| Bomb/Defuse | A/B site, plant və defuse (kit ilə sürətli), bomba düşmə/götürmə, partlayış və defuse qalibiyyəti |
+| Bomb/Defuse | A/B site, plant və defuse (kit ilə sürətli), bomba düşmə/götürmə, partlayış, dünyada görüntü və taymer audiosu |
+| Server config | Round və bomba taymerləri `config/server_default.json`-dan oxunur |
 | Audio | Prosedural sintez: atəş, reload, impact, səth əsaslı spatial addımlar |
 | Scoreboard | Tab ilə açılan server mənbəli cədvəl, round HUD və faza banneri |
 | Backend | Health, versiya və yaddaşda saxlanan server registry |
@@ -73,10 +74,11 @@ Godot avtomatik tapılmasa `GODOT_BIN`-i executable yoluna təyin edin. [Quraşd
 | Ctrl | Çömbəlmək |
 | Shift | Yavaş hərəkət (səssiz) |
 | E (basılı saxlamaq) | Bomba plant / defuse |
+| B | Defuse kit almaq (buy fazasında, müdafiə tərəfi) |
 | Tab | Scoreboard |
 | Esc | Kursoru buraxmaq |
 
-`main`-də Tab scoreboard-u açır, E isə bomba plant/defuse üçün işləyir. B və G üçün alış və drop axınları hələ tamamlanmayıb. Shift ilə yavaş hərəkət səssizdir.
+`main`-də Tab scoreboard-u açır, E bomba plant/defuse, B isə defuse kit alışı üçün işləyir. Tam buy menyusu və G ilə drop axını hələ yoxdur. Shift ilə yavaş hərəkət səssizdir.
 
 ## Repo xəritəsi
 

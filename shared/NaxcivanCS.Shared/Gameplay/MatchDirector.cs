@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Tahmaz Muradov
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+using NaxcivanCS.Shared.Config;
 using NaxcivanCS.Shared.Constants;
 using NaxcivanCS.Shared.Enums;
 
@@ -56,7 +57,13 @@ public sealed class MatchDirector
     private int _alphaLossStreak;
     private int _bravoLossStreak;
 
-    public MatchDirector(int minimumPlayers = 1) => _minimumPlayers = Math.Max(1, minimumPlayers);
+    private readonly RoundTimings _timings;
+
+    public MatchDirector(int minimumPlayers = 1, RoundTimings? timings = null)
+    {
+        _minimumPlayers = Math.Max(1, minimumPlayers);
+        _timings = timings ?? RoundTimings.Defaults;
+    }
 
     public MatchState State { get; private set; } = MatchState.WaitingForPlayers;
 
@@ -114,6 +121,17 @@ public sealed class MatchDirector
         if (Phase == RoundPhase.Active && TryResolveElimination(aliveAlpha, aliveBravo) is { } eliminated)
         {
             return eliminated;
+        }
+
+        // PRD 8 - Bomba yerləşdirildikdən sonra yalnız MÜDAFIƏNIN məhv edilməsi
+        // roundu bitirir: defuse edə biləcək heç kim qalmayıb, ona görə taymeri
+        // sona qədər gözlətmək mənasızdır.
+        //
+        // Əks hal qəsdən fərqlidir: hücum edənlərin hamısı ölsə də round davam
+        // edir, çünki yerləşdirilmiş bomba hələ partlaya bilər.
+        if (Phase == RoundPhase.BombPlanted && _bravoAtRoundStart > 0 && aliveBravo == 0)
+        {
+            return EndRound(Team.Alpha, RoundEndReason.BravoEliminated);
         }
 
         if (PhaseTimeRemaining > 0f)
@@ -259,7 +277,7 @@ public sealed class MatchDirector
     private MatchEvent EnterPhase(RoundPhase phase)
     {
         Phase = phase;
-        PhaseTimeRemaining = MatchRules.PhaseDuration(phase);
+        PhaseTimeRemaining = MatchRules.PhaseDuration(phase, _timings);
         return MatchEvent.PhaseChanged;
     }
 
