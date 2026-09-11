@@ -21,9 +21,11 @@ jobs:
       - name: Check Markdown links
         shell: pwsh
         run: ./tools/check-doc-links.ps1
+      # SourceRef Wiki-dəki permalink-ləri qurur. Teqə bərkidilsə, növbəti
+      # buraxılışdan sonra linklər köhnə koda işarə edər — ona görə cari commit.
       - name: Export Wiki without publishing
         shell: pwsh
-        run: ./tools/publish-wiki.ps1 -SourceRef 0.2.2
+        run: ./tools/publish-wiki.ps1 -SourceRef ${{ github.sha }}
 
   # PRD 123 - Backend: restore, build, test
   backend-and-shared:
