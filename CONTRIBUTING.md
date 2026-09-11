@@ -86,7 +86,7 @@ Bu sətir o deməkdir ki, göndərdiyiniz kodu ya özünüz yazmısınız, ya da
 layihənin lisenziyası altında təqdim etmək hüququnuz var. Mənbəyi bilinməyən
 və ya uyğun olmayan lisenziyalı kod qəbul edilmir.
 
-DCO avtomatik yoxlanır: `Signed-off-by: Ad Soyad <email>` commit müəllifinin adı/email-i ilə uyğun olmalıdır. Bütün PR commit-ləri (merge və bot commit-ləri daxil) yoxlanır; yalnız son commit-ə sign-off əlavə etmək kifayət deyil. Standalone `DCO sign-off` ilə yanaşı artıq tələb olunan `Shared + Backend (build, test)` job-u da bu yoxlamanı icra edir; reviewer sayı artırılmır.
+DCO avtomatik yoxlanır: `Signed-off-by: Ad Soyad <email>` commit müəllifinin adı/email-i ilə uyğun olmalıdır. PR-dakı bütün **məzmun** commit-ləri yoxlanır; yalnız son commit-ə sign-off əlavə etmək kifayət deyil. Merge commit-ləri yoxlamadan azaddır — GitHub-un merge düyməsi onları imzalaya bilmir və özləri yeni müəllif məzmunu gətirmir; merge-in gətirdiyi hər commit isə ayrıca yoxlanır, ona görə imzasız kod merge arxasında gizlənə bilmir. Standalone `DCO sign-off` ilə yanaşı artıq tələb olunan `Shared + Backend (build, test)` job-u da bu yoxlamanı icra edir; reviewer sayı artırılmır.
 
 Yalnız öz commit-inizdə unudulmuş sign-off üçün `git commit --amend --no-edit -s` istifadə edin. Başqasının adından sign-off yaratmayın. Müəllif `git config user.name` və `user.email` dəyərlərini düzgün təyin etməlidir. Tarixçə yenidən yazılarkən mövcud branch/force-push qaydalarına əməl edin.
 

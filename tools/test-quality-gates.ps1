@@ -63,6 +63,22 @@ try {
         git -c user.name='Gate Test' -c user.email='gate@example.invalid' -c commit.gpgsign=false commit --allow-empty -s -m signed-again --quiet
         $head = git rev-parse HEAD
         Assert-Fails { & "$scripts/check-dco.ps1" -BaseSha $base -HeadSha $head }
+
+        # An unsigned merge commit is allowed: GitHub's merge button cannot sign
+        # it, and it introduces no authored content of its own.
+        git checkout --quiet -b gate-topic $signed
+        git -c user.name='Gate Test' -c user.email='gate@example.invalid' -c commit.gpgsign=false commit --allow-empty -s -m topic-signed --quiet
+        git checkout --quiet $signed
+        git -c user.name='Gate Test' -c user.email='gate@example.invalid' -c commit.gpgsign=false merge --no-ff --no-edit -m merge-unsigned gate-topic --quiet
+        $mergedSigned = git rev-parse HEAD
+        & "$scripts/check-dco.ps1" -BaseSha $base -HeadSha $mergedSigned
+
+        # ...but the merge must not smuggle in an unsigned content commit.
+        git checkout --quiet -b gate-topic-unsigned $signed
+        git -c user.name='Gate Test' -c user.email='gate@example.invalid' -c commit.gpgsign=false commit --allow-empty -m topic-unsigned --quiet
+        git checkout --quiet $mergedSigned
+        git -c user.name='Gate Test' -c user.email='gate@example.invalid' -c commit.gpgsign=false merge --no-ff --no-edit -m merge-smuggler gate-topic-unsigned --quiet
+        Assert-Fails { & "$scripts/check-dco.ps1" -BaseSha $base -HeadSha (git rev-parse HEAD) }
     } finally { Pop-Location }
     Assert-Fails { & "$scripts/sync-version.ps1" -Check -ReleaseTag 'invalid-tag' }
     # Run the real version helper in an isolated repo-shaped fixture.
