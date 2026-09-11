@@ -63,6 +63,12 @@ dotnet test NaxcivanCS.sln
 
 ## Oyuna baxmaq
 
+![NaxcivanCS Prototype 0.1](docs/images/prototype-0.1.png)
+
+*Prototype 0.1 — block-out xəritə, düşmən oyunçu (narıncı) və HUD. PRD 5-ə görə
+oyunçular fonda itməməlidir: mühit qəsdən tutqundur, komanda rəngləri parlaqdır.*
+
+
 Ən sadə yol — bu, serveri arxa fonda qaldırır və oyun pəncərəsini açır:
 
 ```bash

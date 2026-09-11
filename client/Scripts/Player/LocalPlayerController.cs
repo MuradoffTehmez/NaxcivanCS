@@ -34,6 +34,9 @@ public sealed partial class LocalPlayerController : CharacterBody3D
     private float _pitchDegrees;
     private float _mouseSensitivity = 0.12f;
 
+    /// <summary>Serverin spawn mövqeyi/bucağı tətbiq olunubmu.</summary>
+    private bool _spawnApplied;
+
     /// <summary>Tarixçədə saxlanan maksimum input — həddindən artıq böyüməsin.</summary>
     private const int MaxUnacknowledgedInputs = 128;
 
@@ -188,6 +191,28 @@ public sealed partial class LocalPlayerController : CharacterBody3D
 
         if (mine is not { } authoritative)
         {
+            return;
+        }
+
+        // İlk snapshot: serverin verdiyi spawn mövqeyini və baxış istiqamətini
+        // olduğu kimi qəbul et. Bunsuz oyunçu (0,0,0)-da, yaw=0 ilə başlayır —
+        // yəni xəritənin içində, divara baxaraq. Aim bundan sonra tamamilə
+        // client-in əlindədir (server mouse ilə mübarizə aparmamalıdır).
+        if (!_spawnApplied)
+        {
+            _spawnApplied = true;
+
+            _yawDegrees = authoritative.Yaw;
+            _pitchDegrees = authoritative.Pitch;
+
+            _state.Position = authoritative.Position;
+            _state.Yaw = authoritative.Yaw;
+            _state.Pitch = authoritative.Pitch;
+
+            GlobalPosition = ToGodot(authoritative.Position);
+            Rotation = new Vector3(0f, Mathf.DegToRad(authoritative.Yaw), 0f);
+
+            _unacknowledgedInputs.Clear();
             return;
         }
 

@@ -52,3 +52,6 @@ temp/
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# Debug ekran sekilleri (--screenshot ile alinanlar)
+/shot*.png

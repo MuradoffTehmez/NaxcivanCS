@@ -17,7 +17,9 @@ public sealed partial class PrototypeHud : Control
 
     public override void _Ready()
     {
-        SetAnchorsPreset(LayoutPreset.FullRect);
+        // AnchorsAndOffsets: yalniz anchor teyin etmek kifayet etmir,
+        // offset-ler de sifirlanmalidir ki, Control hequqeten tam ekrani tutsun.
+        SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         MouseFilter = MouseFilterEnum.Ignore;
 
         _health = CreateLabel(new Vector2(32f, -72f), LayoutPreset.BottomLeft, 28);
@@ -66,8 +68,8 @@ public sealed partial class PrototypeHud : Control
     private Label CreateLabel(Vector2 offset, LayoutPreset preset, int fontSize)
     {
         var label = new Label { Text = string.Empty };
-        label.SetAnchorsPreset(preset);
-        label.Position = offset;
+        label.SetAnchorsAndOffsetsPreset(preset);
+        label.Position += offset;
         label.AddThemeFontSizeOverride("font_size", fontSize);
         label.AddThemeColorOverride("font_outline_color", Colors.Black);
         label.AddThemeConstantOverride("outline_size", 4);
@@ -85,7 +87,7 @@ public sealed partial class Crosshair : Control
 
     public override void _Ready()
     {
-        SetAnchorsPreset(LayoutPreset.FullRect);
+        SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         MouseFilter = MouseFilterEnum.Ignore;
         GetWindow().SizeChanged += QueueRedraw;
     }

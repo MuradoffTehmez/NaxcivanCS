@@ -35,10 +35,16 @@ public sealed partial class GameBootstrap : Node3D
 
         GD.Print($"NaxcivanCS Client — {VersionGate.Describe()}");
 
-        BuildEnvironment();
+        WorldBuilder.Build(this);
+
+        // HUD MUTLEQ CanvasLayer altinda olmalidir: Node3D valideyni Control
+        // ucun layout etmir, neticede anchor-lar (0,0) olcuye qarsi hesablanir
+        // ve ekranin kenarina baglanan elementler gorunmez qalir.
+        var hudLayer = new CanvasLayer { Name = "HudLayer" };
+        AddChild(hudLayer);
 
         _hud = new PrototypeHud { Name = "Hud" };
-        AddChild(_hud);
+        hudLayer.AddChild(_hud);
         _hud.UpdateStatus($"{address}:{port} — qoşulur...");
 
         _network = new NetworkClient { Name = "Network", Username = username };
@@ -60,6 +66,34 @@ public sealed partial class GameBootstrap : Node3D
         {
             RunSmokeTest(seconds);
         }
+
+        // Debug: render yolunun doğru işlədiyini yoxlamaq üçün ekran şəkli.
+        if (ParseString(args, "--screenshot") is { } screenshotPath)
+        {
+            CaptureScreenshotAfter(2.0, screenshotPath);
+        }
+    }
+
+    /// <summary>
+    /// Viewport-u PNG kimi yadda saxlayır. Vizual reqressiyaları avtomatik
+    /// yoxlamaq üçün — headless rejimdə işləmir, pəncərə lazımdır.
+    /// </summary>
+    private void CaptureScreenshotAfter(double delaySeconds, string path)
+    {
+        var timer = new Godot.Timer { WaitTime = delaySeconds, OneShot = true, Autostart = true };
+        timer.Timeout += async () =>
+        {
+            await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
+
+            Image image = GetViewport().GetTexture().GetImage();
+            Error error = image.SavePng(path);
+
+            GD.Print(error == Error.Ok
+                ? $"[GameBootstrap] Ekran şəkli: {path} ({image.GetWidth()}x{image.GetHeight()})"
+                : $"[GameBootstrap] Ekran şəkli alınmadı: {error}");
+        };
+
+        AddChild(timer);
     }
 
     /// <summary>
@@ -207,45 +241,6 @@ public sealed partial class GameBootstrap : Node3D
         }
 
         _remotePlayers.Clear();
-    }
-
-    /// <summary>PRD 127 - Prototype block-out; server ilə eyni həndəsə.</summary>
-    private void BuildEnvironment()
-    {
-        AddChild(new DirectionalLight3D
-        {
-            Name = "Sun",
-            Rotation = new Vector3(Mathf.DegToRad(-55f), Mathf.DegToRad(35f), 0f),
-            ShadowEnabled = true,
-        });
-
-        AddChild(new WorldEnvironment
-        {
-            Name = "Environment",
-            Environment = new Godot.Environment
-            {
-                BackgroundMode = Godot.Environment.BGMode.Sky,
-                Sky = new Sky { SkyMaterial = new ProceduralSkyMaterial() },
-                AmbientLightSource = Godot.Environment.AmbientSource.Sky,
-            },
-        });
-
-        AddBox("Floor", new Vector3(0f, -0.5f, 0f), new Vector3(40f, 1f, 40f));
-        AddBox("Cover_A", new Vector3(-5f, 0.9f, -4f), new Vector3(3f, 1.8f, 1f));
-        AddBox("Cover_B", new Vector3(5f, 0.9f, 4f), new Vector3(3f, 1.8f, 1f));
-        AddBox("Cover_Mid", new Vector3(0f, 1.4f, 0f), new Vector3(1f, 2.8f, 6f));
-        AddBox("Wall_North", new Vector3(0f, 2f, -20f), new Vector3(40f, 4f, 1f));
-        AddBox("Wall_South", new Vector3(0f, 2f, 20f), new Vector3(40f, 4f, 1f));
-        AddBox("Wall_East", new Vector3(20f, 2f, 0f), new Vector3(1f, 4f, 40f));
-        AddBox("Wall_West", new Vector3(-20f, 2f, 0f), new Vector3(1f, 4f, 40f));
-    }
-
-    private void AddBox(string name, Vector3 position, Vector3 size)
-    {
-        var body = new StaticBody3D { Name = name, Position = position };
-        body.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = size } });
-        body.AddChild(new MeshInstance3D { Mesh = new BoxMesh { Size = size } });
-        AddChild(body);
     }
 
     private static int? ParseInt(string[] args, string flag)
