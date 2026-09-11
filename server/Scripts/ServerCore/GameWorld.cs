@@ -57,7 +57,7 @@ public sealed partial class GameWorld : Node3D
     public ServerPlayer AddPlayer(int peerId, string username, Team team)
     {
         NumVector3 spawn = NextSpawnPoint(team);
-        var player = new ServerPlayer(peerId, username, team, spawn, team == Team.Alpha ? 0f : 180f);
+        var player = new ServerPlayer(peerId, username, team, spawn, BlockoutMap.SpawnYaw(team));
         _players[peerId] = player;
 
         CharacterBody3D body = CreateBody(peerId, spawn);
@@ -231,11 +231,8 @@ public sealed partial class GameWorld : Node3D
 
     private NumVector3 NextSpawnPoint(Team team)
     {
-        // PRD 127 - Prototype block-out: iki sadə spawn zolağı.
         int index = _players.Count(p => p.Value.State.Team == team);
-        float x = -4f + (index * 2f);
-        float z = team == Team.Alpha ? -12f : 12f;
-        return new NumVector3(x, 0.1f, z);
+        return BlockoutMap.SpawnPosition(team, index);
     }
 
     private static CharacterBody3D CreateBody(int peerId, NumVector3 spawn)

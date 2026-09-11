@@ -3,7 +3,7 @@
 > Competitive Multiplayer Tactical FPS — Godot 4 + C#, server-authoritative dedicated server.
 
 **Status:** Phase 1 — Prototype 0.1 (oynanıla bilən şəbəkə vertical slice)
-**Versiya:** 0.2.0
+**Versiya:** 0.2.1
 **Sənəd:** [docs/PRD.md](docs/PRD.md)
 
 ---
@@ -61,22 +61,59 @@ dotnet build NaxcivanCS.sln
 dotnet test NaxcivanCS.sln
 ```
 
-Dedicated serveri lokal işə salmaq (PRD 87):
+## Oyuna baxmaq
+
+![NaxcivanCS Prototype 0.1](docs/images/prototype-0.1.png)
+
+*Prototype 0.1 — block-out xəritə, düşmən oyunçu (narıncı) və HUD. PRD 5-ə görə
+oyunçular fonda itməməlidir: mühit qəsdən tutqundur, komanda rəngləri parlaqdır.*
+
+
+Ən sadə yol — bu, serveri arxa fonda qaldırır və oyun pəncərəsini açır:
 
 ```bash
-godot --headless --path server -- --port 27015 --map NC_Qala
+tools/play.sh
 ```
 
-Client-i işə salmaq (serverə qoşulur):
+İki pəncərə ilə (bir-birinizi görürsünüz):
 
 ```bash
-godot --path client -- --server 127.0.0.1 --port 27015 --name Tahmaz
+tools/play.sh 2
 ```
 
-End-to-end yoxlama (server + 2 client, headless):
+Skriptlər Godot-u avtomatik tapır (PATH, `GODOT_BIN`, və ya winget qovluğu).
+
+### İdarəetmə
+
+| Düymə | Nə edir |
+|---|---|
+| Pəncərəyə **klik** | Oyuna gir (kursor tutulur) |
+| **W A S D** | Hərəkət |
+| **Mouse** | Baxış |
+| **Sol klik** | Atəş |
+| **Space** | Tullanma |
+| **Ctrl** | Çömbəlmə |
+| **Shift** | Addımlama (səssiz, dəqiq) |
+| **Esc** | Kursoru burax |
+
+### Ayrı-ayrı işə salmaq
+
+Server (PRD 87 — headless):
 
 ```bash
-GODOT_BIN=/path/to/godot tools/e2e-smoke-test.sh
+tools/run-server.sh
+```
+
+Client (başqa terminalda):
+
+```bash
+tools/run-client.sh Tahmaz
+```
+
+End-to-end yoxlama (server + 2 client, headless, CI-də də işləyir):
+
+```bash
+tools/e2e-smoke-test.sh
 ```
 
 Backend API:

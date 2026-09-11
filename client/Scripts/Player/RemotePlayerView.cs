@@ -1,5 +1,7 @@
 using Godot;
+using NaxcivanCS.Client.Core;
 using NaxcivanCS.Shared.Constants;
+using NaxcivanCS.Shared.Enums;
 using NaxcivanCS.Shared.Gameplay;
 using NaxcivanCS.Shared.Net;
 
@@ -25,6 +27,8 @@ public sealed partial class RemotePlayerView : Node3D
 
     public int PeerId { get; private set; }
 
+    public Team Team { get; private set; } = Team.None;
+
     public int Health { get; private set; } = GameConstants.MaxHealth;
 
     public bool IsAlive => Health > 0;
@@ -46,6 +50,9 @@ public sealed partial class RemotePlayerView : Node3D
                 Height = HitScan.StandingHeight,
             },
             Position = new Vector3(0f, HitScan.StandingHeight / 2f, 0f),
+
+            // PRD 5 - Clear Visibility: oyuncu fonda itmemelidir.
+            MaterialOverride = WorldBuilder.PlayerMaterial(Team),
         };
 
         AddChild(_body);
@@ -56,6 +63,15 @@ public sealed partial class RemotePlayerView : Node3D
     {
         Health = snapshot.Health;
         Visible = IsAlive;
+
+        if (Team != snapshot.Team)
+        {
+            Team = snapshot.Team;
+            if (_body is not null)
+            {
+                _body.MaterialOverride = WorldBuilder.PlayerMaterial(Team);
+            }
+        }
 
         _samples.Add(new Sample(
             serverTimeMs,

@@ -34,6 +34,9 @@ public sealed partial class LocalPlayerController : CharacterBody3D
     private float _pitchDegrees;
     private float _mouseSensitivity = 0.12f;
 
+    /// <summary>Serverin spawn mövqeyi/bucağı tətbiq olunubmu.</summary>
+    private bool _spawnApplied;
+
     /// <summary>Tarixçədə saxlanan maksimum input — həddindən artıq böyüməsin.</summary>
     private const int MaxUnacknowledgedInputs = 128;
 
@@ -65,7 +68,10 @@ public sealed partial class LocalPlayerController : CharacterBody3D
         AddChild(_camera);
 
         _state = MovementState.AtSpawn(ToNumerics(GlobalPosition), 0f);
-        Input.MouseMode = Input.MouseModeEnum.Captured;
+
+        // Kursor avtomatik tutulmur — oyunçu pəncərəyə klikləyəndə tutulur,
+        // Esc ilə buraxılır. Pəncərə açılan kimi kursoru oğurlamaq
+        // development zamanı (və alt-tab edəndə) əsəbiləşdiricidir.
     }
 
     public void Attach(NetworkClient network)
@@ -85,13 +91,23 @@ public sealed partial class LocalPlayerController : CharacterBody3D
                 MovementSimulation.MaxPitchDegrees);
         }
 
+        // Pəncərəyə klik = kursoru tut (oyuna gir).
+        if (@event is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left }
+            && Input.MouseMode != Input.MouseModeEnum.Captured)
+        {
+            Input.MouseMode = Input.MouseModeEnum.Captured;
+            return;
+        }
+
+        // Esc = kursoru burax (alt-tab, pəncərəni bağlamaq üçün).
         if (@event.IsActionPressed("ui_cancel"))
         {
-            Input.MouseMode = Input.MouseMode == Input.MouseModeEnum.Captured
-                ? Input.MouseModeEnum.Visible
-                : Input.MouseModeEnum.Captured;
+            Input.MouseMode = Input.MouseModeEnum.Visible;
         }
     }
+
+    /// <summary>Kursor tutulmayıbsa oyunçu hələ "oyunda" deyil — input göndərilmir.</summary>
+    private static bool IsPlaying => Input.MouseMode == Input.MouseModeEnum.Captured;
 
     public override void _PhysicsProcess(double delta)
     {
@@ -100,8 +116,14 @@ public sealed partial class LocalPlayerController : CharacterBody3D
             return;
         }
 
-        Vector2 move = Input.GetVector("move_left", "move_right", "move_forward", "move_backward");
-        InputCommand input = _network.BuildInput(-move.Y, move.X, _yawDegrees, _pitchDegrees, CollectButtons());
+        // Kursor buraxılıbsa neytral input göndərilir: server bizi simulyasiya
+        // etməyə davam edir, amma təsadüfi hərəkət/atəş baş vermir.
+        Vector2 move = IsPlaying
+            ? Input.GetVector("move_left", "move_right", "move_forward", "move_backward")
+            : Vector2.Zero;
+
+        InputCommand input = _network.BuildInput(
+            -move.Y, move.X, _yawDegrees, _pitchDegrees, IsPlaying ? CollectButtons() : InputButtons.None);
 
         // 1) Serverə göndər — bu, gameplay-in yeganə girişidir (PRD 46).
         _network.SendInput(input);
@@ -169,6 +191,28 @@ public sealed partial class LocalPlayerController : CharacterBody3D
 
         if (mine is not { } authoritative)
         {
+            return;
+        }
+
+        // İlk snapshot: serverin verdiyi spawn mövqeyini və baxış istiqamətini
+        // olduğu kimi qəbul et. Bunsuz oyunçu (0,0,0)-da, yaw=0 ilə başlayır —
+        // yəni xəritənin içində, divara baxaraq. Aim bundan sonra tamamilə
+        // client-in əlindədir (server mouse ilə mübarizə aparmamalıdır).
+        if (!_spawnApplied)
+        {
+            _spawnApplied = true;
+
+            _yawDegrees = authoritative.Yaw;
+            _pitchDegrees = authoritative.Pitch;
+
+            _state.Position = authoritative.Position;
+            _state.Yaw = authoritative.Yaw;
+            _state.Pitch = authoritative.Pitch;
+
+            GlobalPosition = ToGodot(authoritative.Position);
+            Rotation = new Vector3(0f, Mathf.DegToRad(authoritative.Yaw), 0f);
+
+            _unacknowledgedInputs.Clear();
             return;
         }
 

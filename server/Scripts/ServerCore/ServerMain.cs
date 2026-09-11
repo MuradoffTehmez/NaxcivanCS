@@ -1,5 +1,6 @@
 using Godot;
 using NaxcivanCS.Shared.Constants;
+using NaxcivanCS.Shared.Gameplay;
 
 namespace NaxcivanCS.Server.ServerCore;
 
@@ -46,28 +47,29 @@ public sealed partial class ServerMain : Node3D
     }
 
     /// <summary>
-    /// PRD 127 - Prototype block-out: döşəmə + bir neçə örtük divarı.
-    /// Həqiqi xəritələr (NC_Qala və s.) Phase 2-də .tscn kimi gələcək.
+    /// PRD 127 - Prototype block-out. Həndəsə <see cref="BlockoutMap"/>-dan gəlir —
+    /// client ilə eyni mənbə, beləliklə örtüklər iki tərəfdə fərqlənə bilmir.
+    /// Serverdə yalnız kolliziya qurulur, mesh lazım deyil (headless).
     /// </summary>
     private void BuildBlockoutMap()
     {
-        AddStaticBox("Floor", new Vector3(0f, -0.5f, 0f), new Vector3(40f, 1f, 40f));
+        foreach (MapBlock block in BlockoutMap.Blocks)
+        {
+            var body = new StaticBody3D
+            {
+                Name = block.Name,
+                Position = new Vector3(block.Center.X, block.Center.Y, block.Center.Z),
+            };
 
-        AddStaticBox("Cover_A", new Vector3(-5f, 0.9f, -4f), new Vector3(3f, 1.8f, 1f));
-        AddStaticBox("Cover_B", new Vector3(5f, 0.9f, 4f), new Vector3(3f, 1.8f, 1f));
-        AddStaticBox("Cover_Mid", new Vector3(0f, 1.4f, 0f), new Vector3(1f, 2.8f, 6f));
+            body.AddChild(new CollisionShape3D
+            {
+                Shape = new BoxShape3D { Size = new Vector3(block.Size.X, block.Size.Y, block.Size.Z) },
+            });
 
-        AddStaticBox("Wall_North", new Vector3(0f, 2f, -20f), new Vector3(40f, 4f, 1f));
-        AddStaticBox("Wall_South", new Vector3(0f, 2f, 20f), new Vector3(40f, 4f, 1f));
-        AddStaticBox("Wall_East", new Vector3(20f, 2f, 0f), new Vector3(1f, 4f, 40f));
-        AddStaticBox("Wall_West", new Vector3(-20f, 2f, 0f), new Vector3(1f, 4f, 40f));
-    }
+            AddChild(body);
+        }
 
-    private void AddStaticBox(string name, Vector3 position, Vector3 size)
-    {
-        var body = new StaticBody3D { Name = name, Position = position };
-        body.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = size } });
-        AddChild(body);
+        GD.Print($"[ServerMain] Block-out: {BlockoutMap.Blocks.Count} blok");
     }
 
     private void RunSmokeTest(int seconds)
