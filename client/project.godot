@@ -1,0 +1,89 @@
+; NaxcivanCS Client - Godot 4 project (PRD 85, 86)
+; Engine configuration file.
+
+config_version=5
+
+[application]
+
+config/name="NaxcivanCS"
+config/description="Competitive Multiplayer Tactical FPS"
+config/version="0.1.0"
+run/main_scene="res://Scenes/Main.tscn"
+config/features=PackedStringArray("4.7", "C#", "Forward Plus")
+config/icon="res://icon.svg"
+
+[dotnet]
+
+project/assembly_name="NaxcivanCS.Client"
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/stretch/mode="canvas_items"
+window/vsync/vsync_mode=0
+
+[input]
+
+; PRD 11 - Default controls
+move_forward={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":87)]
+}
+move_backward={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":83)]
+}
+move_left={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":65)]
+}
+move_right={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":68)]
+}
+jump={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":32)]
+}
+crouch={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":4194326)]
+}
+walk={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":4194325)]
+}
+reload={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":82)]
+}
+interact={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":69)]
+}
+drop_weapon={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":71)]
+}
+buy_menu={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":66)]
+}
+scoreboard={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":4194306)]
+}
+
+[internationalization]
+
+locale/fallback="az"
+
+[physics]
+
+common/physics_ticks_per_second=64
+
+[rendering]
+
+renderer/rendering_method="forward_plus"
+textures/vram_compression/import_etc2_astc=true

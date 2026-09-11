@@ -1,0 +1,22 @@
+{
+  "id": "weapon_shotgun_01",
+  "name": "SG-2 Ordubad",
+  "category": "Shotgun",
+  "damage": 23,
+  "armorPenetration": 0.4,
+  "fireRate": 68,
+  "magazineSize": 8,
+  "reserveAmmo": 32,
+  "reloadTime": 0.55,
+  "movementSpeed": 0.88,
+  "spreadStanding": 0.06,
+  "spreadMoving": 0.12,
+  "spreadJumping": 0.3,
+  "range": 9.0,
+  "damageFalloff": 0.09,
+  "price": 1900,
+  "killReward": 900,
+  "recoilPattern": [
+    { "vertical": 3.2, "horizontal": 0.0 }
+  ]
+}

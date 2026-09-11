@@ -1,0 +1,20 @@
+{
+  "id": "weapon_knife_01",
+  "name": "Standart Bıçaq",
+  "category": "Knife",
+  "damage": 42,
+  "armorPenetration": 0.85,
+  "fireRate": 120,
+  "magazineSize": 0,
+  "reserveAmmo": 0,
+  "reloadTime": 0.0,
+  "movementSpeed": 1.06,
+  "spreadStanding": 0.0,
+  "spreadMoving": 0.0,
+  "spreadJumping": 0.0,
+  "range": 2.0,
+  "damageFalloff": 0.0,
+  "price": 0,
+  "killReward": 1500,
+  "recoilPattern": []
+}

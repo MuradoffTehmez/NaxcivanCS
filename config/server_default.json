@@ -1,0 +1,40 @@
+{
+  "$comment": "PRD 10, 148 - butun round deyerleri server config vasitesile deyisdirile biler.",
+  "serverName": "NaxcivanCS Dedicated",
+  "region": "AzCaucasus",
+  "mode": "Competitive",
+  "map": "NC_Qala",
+  "maxPlayers": 10,
+  "tickrate": 64,
+  "password": "",
+  "friendlyFire": false,
+  "round": {
+    "freezeTimeSeconds": 10,
+    "buyTimeSeconds": 20,
+    "roundTimeSeconds": 105,
+    "bombTimerSeconds": 40,
+    "roundEndDelaySeconds": 5,
+    "plantTimeSeconds": 3.2,
+    "defuseTimeSeconds": 10,
+    "defuseTimeWithKitSeconds": 5
+  },
+  "match": {
+    "roundsPerHalf": 12,
+    "roundsToWin": 13,
+    "overtimeRoundsPerHalf": 3
+  },
+  "economy": {
+    "startMoney": 800,
+    "maxMoney": 16000,
+    "roundWinReward": 3250,
+    "lossBonusLadder": [1400, 1900, 2400, 2900, 3400],
+    "bombPlantTeamReward": 800,
+    "bombPlantPlayerReward": 300,
+    "bombDefusePlayerReward": 300
+  },
+  "antiCheat": {
+    "suspicionReviewThreshold": 80,
+    "suspicionRestrictThreshold": 100,
+    "lagCompensationHistoryMs": 200
+  }
+}

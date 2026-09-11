@@ -1,0 +1,49 @@
+{
+  "menu.play": "OYNA",
+  "menu.inventory": "İNVENTAR",
+  "menu.profile": "PROFİL",
+  "menu.rank": "REYTİNQ",
+  "menu.friends": "DOSTLAR",
+  "menu.settings": "PARAMETRLƏR",
+  "menu.exit": "ÇIXIŞ",
+
+  "hud.health": "Can",
+  "hud.armor": "Zireh",
+  "hud.ammo": "Patron",
+  "hud.money": "Pul",
+  "hud.roundTimer": "Round vaxtı",
+
+  "round.freezeTime": "Hazırlıq",
+  "round.buyTime": "Alış vaxtı",
+  "round.live": "Round başladı",
+  "round.bombPlanted": "Bomba yerləşdirildi",
+  "round.bombDefused": "Bomba zərərsizləşdirildi",
+  "round.alphaWins": "Alpha qazandı",
+  "round.bravoWins": "Bravo qazandı",
+
+  "team.alpha": "Alpha",
+  "team.bravo": "Bravo",
+  "team.spectator": "İzləyici",
+
+  "buy.pistols": "Tapançalar",
+  "buy.smg": "SMG",
+  "buy.rifles": "Tüfənglər",
+  "buy.snipers": "Snayper",
+  "buy.shotguns": "Ov tüfəngi",
+  "buy.heavy": "Ağır",
+  "buy.equipment": "Avadanlıq",
+  "buy.grenades": "Qumbaralar",
+  "buy.notEnoughMoney": "Kifayət qədər pul yoxdur",
+  "buy.notInBuyZone": "Alış zonasında deyilsiniz",
+
+  "net.connecting": "Serverə qoşulur...",
+  "net.versionMismatch": "Client versiyası serverlə uyğun deyil",
+  "net.disconnected": "Server ilə əlaqə kəsildi",
+
+  "settings.video": "Video",
+  "settings.audio": "Səs",
+  "settings.controls": "İdarəetmə",
+  "settings.sensitivity": "Həssaslıq",
+  "settings.fov": "Görüş bucağı (FOV)",
+  "settings.language": "Dil"
+}

@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "NaxcivanCS.Backend.Api": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:38226;http://localhost:38227"
+    }
+  }
+}

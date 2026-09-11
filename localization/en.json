@@ -1,0 +1,49 @@
+{
+  "menu.play": "PLAY",
+  "menu.inventory": "INVENTORY",
+  "menu.profile": "PROFILE",
+  "menu.rank": "RANK",
+  "menu.friends": "FRIENDS",
+  "menu.settings": "SETTINGS",
+  "menu.exit": "EXIT",
+
+  "hud.health": "Health",
+  "hud.armor": "Armor",
+  "hud.ammo": "Ammo",
+  "hud.money": "Money",
+  "hud.roundTimer": "Round time",
+
+  "round.freezeTime": "Freeze time",
+  "round.buyTime": "Buy time",
+  "round.live": "Round started",
+  "round.bombPlanted": "Bomb planted",
+  "round.bombDefused": "Bomb defused",
+  "round.alphaWins": "Alpha wins",
+  "round.bravoWins": "Bravo wins",
+
+  "team.alpha": "Alpha",
+  "team.bravo": "Bravo",
+  "team.spectator": "Spectator",
+
+  "buy.pistols": "Pistols",
+  "buy.smg": "SMG",
+  "buy.rifles": "Rifles",
+  "buy.snipers": "Snipers",
+  "buy.shotguns": "Shotguns",
+  "buy.heavy": "Heavy",
+  "buy.equipment": "Equipment",
+  "buy.grenades": "Grenades",
+  "buy.notEnoughMoney": "Not enough money",
+  "buy.notInBuyZone": "You are not in the buy zone",
+
+  "net.connecting": "Connecting to server...",
+  "net.versionMismatch": "Client version does not match the server",
+  "net.disconnected": "Disconnected from server",
+
+  "settings.video": "Video",
+  "settings.audio": "Audio",
+  "settings.controls": "Controls",
+  "settings.sensitivity": "Sensitivity",
+  "settings.fov": "Field of view (FOV)",
+  "settings.language": "Language"
+}

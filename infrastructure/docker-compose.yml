@@ -1,0 +1,66 @@
+# PRD 88, 90, 91, 99 - MVP infrastrukturu: Docker + Linux VPS.
+# Kubernetes/Agones ilk versiyada TELEB OLUNMUR (PRD 99).
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: naxcivancs-postgres
+    environment:
+      POSTGRES_DB: naxcivancs
+      POSTGRES_USER: naxcivancs
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD .env faylinda teyin edilmelidir}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U naxcivancs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: naxcivancs-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/Dockerfile.backend
+    container_name: naxcivancs-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Postgres: "Host=postgres;Database=naxcivancs;Username=naxcivancs;Password=${POSTGRES_PASSWORD}"
+      ConnectionStrings__Redis: "redis:6379"
+    ports:
+      - "8080:8080"
+
+  gameserver:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/Dockerfile.gameserver
+    container_name: naxcivancs-gameserver
+    depends_on:
+      - backend
+    ports:
+      - "27015:27015/udp"
+    command: ["--port", "27015", "--map", "NC_Qala"]
+
+volumes:
+  postgres-data:
+  redis-data:

@@ -1,0 +1,49 @@
+{
+  "menu.play": "ИГРАТЬ",
+  "menu.inventory": "ИНВЕНТАРЬ",
+  "menu.profile": "ПРОФИЛЬ",
+  "menu.rank": "РАНГ",
+  "menu.friends": "ДРУЗЬЯ",
+  "menu.settings": "НАСТРОЙКИ",
+  "menu.exit": "ВЫХОД",
+
+  "hud.health": "Здоровье",
+  "hud.armor": "Броня",
+  "hud.ammo": "Патроны",
+  "hud.money": "Деньги",
+  "hud.roundTimer": "Время раунда",
+
+  "round.freezeTime": "Подготовка",
+  "round.buyTime": "Время закупки",
+  "round.live": "Раунд начался",
+  "round.bombPlanted": "Бомба установлена",
+  "round.bombDefused": "Бомба обезврежена",
+  "round.alphaWins": "Победа Alpha",
+  "round.bravoWins": "Победа Bravo",
+
+  "team.alpha": "Alpha",
+  "team.bravo": "Bravo",
+  "team.spectator": "Наблюдатель",
+
+  "buy.pistols": "Пистолеты",
+  "buy.smg": "ПП",
+  "buy.rifles": "Винтовки",
+  "buy.snipers": "Снайперские",
+  "buy.shotguns": "Дробовики",
+  "buy.heavy": "Тяжёлое",
+  "buy.equipment": "Снаряжение",
+  "buy.grenades": "Гранаты",
+  "buy.notEnoughMoney": "Недостаточно денег",
+  "buy.notInBuyZone": "Вы вне зоны закупки",
+
+  "net.connecting": "Подключение к серверу...",
+  "net.versionMismatch": "Версия клиента не совпадает с сервером",
+  "net.disconnected": "Соединение с сервером потеряно",
+
+  "settings.video": "Видео",
+  "settings.audio": "Звук",
+  "settings.controls": "Управление",
+  "settings.sensitivity": "Чувствительность",
+  "settings.fov": "Поле зрения (FOV)",
+  "settings.language": "Язык"
+}

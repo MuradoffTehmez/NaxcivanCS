@@ -1,0 +1,54 @@
+# ---- .NET ----
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+.vs/
+.vscode/
+.idea/
+artifacts/
+TestResults/
+*.nupkg
+*.snupkg
+
+# ---- Godot 4 ----
+.godot/
+.import/
+export.cfg
+export_presets.cfg
+*.translation
+data_*/
+mono_crash.*.json
+.mono/
+
+# ---- Build output ----
+build/
+dist/
+export/
+*.pck
+*.exe
+*.pdb
+*.dll
+!tools/**/*.dll
+
+# ---- Env / secrets ----
+.env
+.env.*
+!.env.example
+appsettings.Development.json
+appsettings.Local.json
+*.pfx
+*.key
+secrets/
+
+# ---- Logs / temp ----
+logs/
+*.log
+tmp/
+temp/
+
+# ---- OS ----
+Thumbs.db
+desktop.ini
+.DS_Store

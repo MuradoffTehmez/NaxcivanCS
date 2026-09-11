@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>NaxcivanCS.Backend.Api</RootNamespace>
+    <UserSecretsId>naxcivancs-backend</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared\NaxcivanCS.Shared\NaxcivanCS.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

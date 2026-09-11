@@ -1,0 +1,24 @@
+{
+  "id": "weapon_pistol_02",
+  "name": "HP-5 Qaya",
+  "category": "Pistol",
+  "damage": 38,
+  "armorPenetration": 0.6,
+  "fireRate": 250,
+  "magazineSize": 7,
+  "reserveAmmo": 35,
+  "reloadTime": 2.2,
+  "movementSpeed": 0.98,
+  "spreadStanding": 0.02,
+  "spreadMoving": 0.1,
+  "spreadJumping": 0.3,
+  "range": 22.0,
+  "damageFalloff": 0.018,
+  "price": 700,
+  "killReward": 300,
+  "recoilPattern": [
+    { "vertical": 2.4, "horizontal": 0.0 },
+    { "vertical": 2.6, "horizontal": 0.6 },
+    { "vertical": 2.6, "horizontal": -0.6 }
+  ]
+}

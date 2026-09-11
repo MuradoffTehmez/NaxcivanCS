@@ -1,0 +1,25 @@
+; NaxcivanCS Dedicated Server - Godot 4 headless (PRD 87)
+; Engine configuration file.
+
+config_version=5
+
+[application]
+
+config/name="NaxcivanCS Server"
+config/description="Server-authoritative dedicated game server"
+config/version="0.1.0"
+run/main_scene="res://Scenes/ServerMain.tscn"
+config/features=PackedStringArray("4.7", "C#", "Forward Plus")
+
+[dotnet]
+
+project/assembly_name="NaxcivanCS.Server"
+
+[physics]
+
+; PRD 42 - 64 tick server simulation
+common/physics_ticks_per_second=64
+
+[rendering]
+
+renderer/rendering_method="forward_plus"

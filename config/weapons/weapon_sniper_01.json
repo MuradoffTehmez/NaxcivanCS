@@ -1,0 +1,22 @@
+{
+  "id": "weapon_sniper_01",
+  "name": "SN-8 Batabat",
+  "category": "Sniper",
+  "damage": 115,
+  "armorPenetration": 0.95,
+  "fireRate": 41,
+  "magazineSize": 10,
+  "reserveAmmo": 30,
+  "reloadTime": 3.7,
+  "movementSpeed": 0.78,
+  "spreadStanding": 0.0,
+  "spreadMoving": 0.25,
+  "spreadJumping": 0.6,
+  "range": 80.0,
+  "damageFalloff": 0.0,
+  "price": 4750,
+  "killReward": 100,
+  "recoilPattern": [
+    { "vertical": 4.0, "horizontal": 0.0 }
+  ]
+}

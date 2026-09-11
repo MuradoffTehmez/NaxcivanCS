@@ -1,0 +1,24 @@
+{
+  "id": "weapon_pistol_01",
+  "name": "PS-1 Naxçıvan",
+  "category": "Pistol",
+  "damage": 26,
+  "armorPenetration": 0.45,
+  "fireRate": 400,
+  "magazineSize": 20,
+  "reserveAmmo": 60,
+  "reloadTime": 1.8,
+  "movementSpeed": 1.0,
+  "spreadStanding": 0.018,
+  "spreadMoving": 0.07,
+  "spreadJumping": 0.22,
+  "range": 20.0,
+  "damageFalloff": 0.02,
+  "price": 0,
+  "killReward": 300,
+  "recoilPattern": [
+    { "vertical": 1.4, "horizontal": 0.0 },
+    { "vertical": 1.6, "horizontal": 0.3 },
+    { "vertical": 1.7, "horizontal": -0.3 }
+  ]
+}

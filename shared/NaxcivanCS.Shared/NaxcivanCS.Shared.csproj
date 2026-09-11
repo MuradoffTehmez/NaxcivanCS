@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- net8.0: Godot 4 .NET client/server ve ASP.NET Core backend
+         eyni kitabxanani reference ede bilsin deye. -->
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>NaxcivanCS.Shared</RootNamespace>
+    <AssemblyName>NaxcivanCS.Shared</AssemblyName>
+  </PropertyGroup>
+
+</Project>
