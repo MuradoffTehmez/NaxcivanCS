@@ -43,8 +43,13 @@ public sealed partial class GameWorld : Node3D
     private uint _tick;
     private double _serverTimeMs;
 
-    /// <summary>PRD 127 - Prototype-da sadə respawn gecikməsi.</summary>
-    private const double RespawnDelayMs = 3000;
+    /// <summary>
+    /// PRD 9, 10, 128 - Round/match idarəçisi.
+    ///
+    /// Round məntiqi burada deyil, shared-dəki saf state machine-dədir —
+    /// beləliklə round keçidləri unit testlə yoxlanıla bilir.
+    /// </summary>
+    private readonly MatchDirector _match = new();
 
     /// <summary>Snapshot yayım tezliyi — hər N tick-də bir (64 tick / 2 = 32 Hz).</summary>
     private const int SnapshotEveryNTicks = 2;
@@ -102,28 +107,165 @@ public sealed partial class GameWorld : Node3D
 
         foreach (ServerPlayer player in _players.Values)
         {
-            InputButtons buttons = SimulatePlayer(player, fixedDelta);
+            // PRD 10 - Freeze time-da hərəkət bloklanır. Baxış bucağı yenə
+            // işləyir, yalnız yerdəyişmə dayandırılır.
+            InputButtons buttons = SimulatePlayer(player, fixedDelta, _match.MovementLocked);
 
-            // PRD 14, 17 - Silah tick-i: atəş, reload, recoil. Hərəkətdən SONRA
-            // çağırılır ki, güllə oyunçunun bu tick-dəki son mövqeyindən çıxsın.
-            TickWeapon(player, buttons, fixedDelta);
+            // PRD 14, 17 - Silah tick-i. Round aktiv deyilsə atəş düyməsi
+            // nəzərə alınmır: freeze/buy fazasında atəş açmaq olmaz.
+            InputButtons weaponButtons = _match.CombatEnabled
+                ? buttons
+                : buttons & ~InputButtons.PrimaryFire;
+
+            TickWeapon(player, weaponButtons, fixedDelta);
 
             // PRD 45 - Lag compensation üçün mövqe tarixçəsi.
             player.History.Record(_serverTimeMs, player.Movement.Position, player.Movement.Yaw, player.Movement.IsCrouching);
-
-            if (player.ShouldRespawn(_serverTimeMs, RespawnDelayMs))
-            {
-                player.SpawnPosition = NextSpawnPoint(player.State.Team);
-                player.Respawn();
-                SyncBody(player);
-            }
         }
+
+        TickMatch(fixedDelta);
 
         if (_tick % SnapshotEveryNTicks == 0)
         {
             BroadcastSnapshot();
         }
     }
+
+    /// <summary>
+    /// PRD 9, 10 - Round/match vəziyyətini irəli aparır və hadisələri tətbiq edir.
+    /// </summary>
+    private void TickMatch(float delta)
+    {
+        MatchEvent result = _match.Tick(
+            delta, CountAlive(Team.Alpha), CountAlive(Team.Bravo), _players.Count);
+
+        switch (result)
+        {
+            case MatchEvent.None:
+                return;
+
+            case MatchEvent.HalftimeSwap:
+                SwapTeams();
+                StartNewRound();
+                break;
+
+            case MatchEvent.RoundStarted:
+                StartNewRound();
+                break;
+
+            case MatchEvent.RoundEnded:
+                ApplyRoundPayout();
+                GD.Print($"[Match] Round {_match.RoundNumber}: {_match.RoundWinner} qazandi " +
+                         $"({_match.LastRoundEndReason}) — {_match.AlphaScore}:{_match.BravoScore}");
+                EmitSignal(SignalName.ScoreboardChanged);
+                break;
+
+            case MatchEvent.MatchEnded:
+                GD.Print($"[Match] Match bitdi: {_match.MatchWinner} " +
+                         $"({_match.AlphaScore}:{_match.BravoScore})");
+                EmitSignal(SignalName.ScoreboardChanged);
+                break;
+
+            case MatchEvent.PhaseChanged:
+            default:
+                break;
+        }
+
+        BroadcastRoundState();
+    }
+
+    /// <summary>PRD 10 - Yeni round: hamı dirilir, silahlar dolur, mövqelər sıfırlanır.</summary>
+    private void StartNewRound()
+    {
+        foreach (ServerPlayer player in _players.Values)
+        {
+            player.SpawnPosition = SpawnPointForRound(player.State.Team, player.PeerId);
+            player.SpawnYaw = BlockoutMap.SpawnYaw(player.State.Team);
+            player.Respawn();
+            SyncBody(player);
+        }
+
+        _match.RegisterRoundRoster(CountTeam(Team.Alpha), CountTeam(Team.Bravo));
+        EmitSignal(SignalName.ScoreboardChanged);
+
+        GD.Print($"[Match] Round {_match.RoundNumber} basladi " +
+                 $"({CountTeam(Team.Alpha)}v{CountTeam(Team.Bravo)})");
+    }
+
+    /// <summary>PRD 9 - Yarı vaxtda oyunçular tərəf dəyişir.</summary>
+    private void SwapTeams()
+    {
+        foreach (ServerPlayer player in _players.Values)
+        {
+            player.State.Team = player.State.Team == Team.Alpha ? Team.Bravo : Team.Alpha;
+        }
+
+        GD.Print("[Match] Yari vaxt — komandalar teref deyisdi");
+    }
+
+    /// <summary>PRD 25, 26 - Round sonu pulu.</summary>
+    private void ApplyRoundPayout()
+    {
+        RoundPayout payout = _match.LastPayout;
+
+        foreach (ServerPlayer player in _players.Values)
+        {
+            int reward = player.State.Team == Team.Alpha ? payout.AlphaReward : payout.BravoReward;
+            player.State.Money = EconomyRules.AddMoney(player.State.Money, reward);
+        }
+    }
+
+    private int CountAlive(Team team)
+        => _players.Values.Count(p => p.State.Team == team && p.State.IsAlive);
+
+    private int CountTeam(Team team)
+        => _players.Values.Count(p => p.State.Team == team);
+
+    /// <summary>Komanda daxilində sabit spawn sırası (peer id-yə görə).</summary>
+    private NumVector3 SpawnPointForRound(Team team, int peerId)
+    {
+        int index = 0;
+        foreach (ServerPlayer other in _players.Values.Where(p => p.State.Team == team).OrderBy(p => p.PeerId))
+        {
+            if (other.PeerId == peerId)
+            {
+                break;
+            }
+
+            index++;
+        }
+
+        return BlockoutMap.SpawnPosition(team, index);
+    }
+
+    private void BroadcastRoundState() => EmitSignal(
+        SignalName.RoundStateChanged,
+        (int)_match.Phase,
+        (int)_match.State,
+        _match.PhaseTimeRemaining,
+        _match.RoundNumber,
+        _match.AlphaScore,
+        _match.BravoScore,
+        (int)_match.RoundWinner,
+        (int)_match.LastRoundEndReason);
+
+    [Signal]
+    public delegate void RoundStateChangedEventHandler(
+        int phase, int matchState, float timeRemaining, int roundNumber,
+        int alphaScore, int bravoScore, int roundWinner, int endReason);
+
+    [Signal]
+    public delegate void ScoreboardChangedEventHandler();
+
+    /// <summary>PRD 128 - Scoreboard sətirləri.</summary>
+    public IReadOnlyList<PacketCodec.ScoreboardEntry> BuildScoreboard()
+        => _players.Values
+            .OrderByDescending(p => p.State.Kills)
+            .ThenBy(p => p.State.Deaths)
+            .Select(p => new PacketCodec.ScoreboardEntry(
+                p.PeerId, p.State.Username, p.State.Team,
+                p.State.Kills, p.State.Deaths, p.State.Money, p.State.IsAlive))
+            .ToList();
 
     /// <summary>
     /// PRD 14, 17, 46 - Silahın bir tick-i: kadensiya, patron, reload, recoil.
@@ -252,7 +394,7 @@ public sealed partial class GameWorld : Node3D
     /// Silah kadensiyası tick başına bir dəfə hesablanır: bir tick-də bir neçə
     /// input emal olunsa belə, silah öz sürətindən tez atəş aça bilməz.
     /// </summary>
-    private InputButtons SimulatePlayer(ServerPlayer player, float delta)
+    private InputButtons SimulatePlayer(ServerPlayer player, float delta, bool movementLocked)
     {
         InputButtons lastButtons = InputButtons.None;
 
@@ -269,6 +411,16 @@ public sealed partial class GameWorld : Node3D
         foreach (InputCommand input in player.DequeueInputsForTick())
         {
             lastButtons = input.Buttons;
+
+            // PRD 10 - Freeze time: baxış bucağı yenilənir, yerdəyişmə yox.
+            if (movementLocked)
+            {
+                player.Movement.Yaw = input.YawDegrees;
+                player.Movement.Pitch = Math.Clamp(input.PitchDegrees, -89f, 89f);
+                player.Movement.Velocity = NumVector3.Zero;
+                player.Movement.LastProcessedSequence = input.Sequence;
+                continue;
+            }
 
             NumVector3 before = player.Movement.Position;
 

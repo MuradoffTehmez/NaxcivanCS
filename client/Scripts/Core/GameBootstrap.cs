@@ -26,6 +26,8 @@ public sealed partial class GameBootstrap : Node3D
     private PrototypeHud? _hud;
     private ShotEffects? _effects;
     private GameAudio? _audio;
+    private RoundHud? _roundHud;
+    private Scoreboard? _scoreboard;
     private bool _autoFire;
     private bool _wasReloading;
 
@@ -52,6 +54,12 @@ public sealed partial class GameBootstrap : Node3D
 
         _hud = new PrototypeHud { Name = "Hud" };
         hudLayer.AddChild(_hud);
+
+        _roundHud = new RoundHud { Name = "RoundHud" };
+        hudLayer.AddChild(_roundHud);
+
+        _scoreboard = new Scoreboard { Name = "Scoreboard" };
+        hudLayer.AddChild(_scoreboard);
         _hud.UpdateStatus($"{address}:{port} — qoşulur...");
 
         _network = new NetworkClient { Name = "Network", Username = username };
@@ -63,6 +71,8 @@ public sealed partial class GameBootstrap : Node3D
         _network.DamageReceived += OnDamageReceived;
         _network.ShotFired += OnShotFired;
         _network.WeaponStateReceived += OnWeaponStateReceived;
+        _network.RoundStateReceived += OnRoundStateReceived;
+        _network.ScoreboardReceived += OnScoreboardReceived;
         _network.Disconnected += OnDisconnected;
 
         _effects = new ShotEffects { Name = "ShotEffects" };
@@ -151,6 +161,9 @@ public sealed partial class GameBootstrap : Node3D
         {
             _hud?.SetCrosshairSpread(_localPlayer.RecoilRatio);
         }
+
+        // PRD 11 - Tab basılı olduqca scoreboard görünür.
+        _scoreboard?.SetShown(Input.IsActionPressed("scoreboard"));
 
         // PRD 44 - Render vaxtı serverin son snapshot-ından bir qədər geridədir.
         _renderClockMs += delta * 1000.0;
@@ -315,6 +328,32 @@ public sealed partial class GameBootstrap : Node3D
         else
         {
             _audio?.PlayReloadEnd(position, isLocal: true);
+        }
+    }
+
+    /// <summary>PRD 10, 128 - Serverdən gələn round vəziyyəti.</summary>
+    private void OnRoundStateReceived(
+        int phase, int matchState, float timeRemaining, int roundNumber,
+        int alphaScore, int bravoScore, int roundWinner, int endReason)
+        => _roundHud?.UpdateRound(
+            (RoundPhase)phase,
+            (MatchState)matchState,
+            timeRemaining,
+            roundNumber,
+            alphaScore,
+            bravoScore,
+            (Team)roundWinner,
+            (RoundEndReason)endReason);
+
+    private void OnScoreboardReceived(byte[] payload)
+    {
+        try
+        {
+            _scoreboard?.SetEntries(PacketCodec.DecodeScoreboard(payload));
+        }
+        catch (ArgumentException ex)
+        {
+            GD.PushWarning($"[GameBootstrap] Scoreboard oxunmadı: {ex.Message}");
         }
     }
 
