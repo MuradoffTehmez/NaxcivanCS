@@ -1,5 +1,5 @@
 # PRD 99, 100, 101 - NaxcivanCS dedicated server konteyneri (Linux headless).
-# Qurulus:  docker build -f infrastructure/docker/Dockerfile.gameserver -t naxcivancs-server:0.1.0 .
+# Qurulus:  docker build -f infrastructure/docker/gameserver.dockerfile -t naxcivancs-server:0.1.0 .
 # Isledilme: docker run --rm -p 27015:27015/udp naxcivancs-server:0.1.0
 
 ARG GODOT_VERSION=4.7.2
