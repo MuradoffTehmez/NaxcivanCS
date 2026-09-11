@@ -170,5 +170,6 @@ public sealed class NetworkProtocolTests
     {
         Assert.True(VersionGate.IsCompatible(GameConstants.ProtocolVersion));
         Assert.False(VersionGate.IsCompatible(GameConstants.ProtocolVersion + 1));
+        Assert.False(VersionGate.IsCompatible(1)); // Pre-gunplay clients lack shot/ammo messages.
     }
 }

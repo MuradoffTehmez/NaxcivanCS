@@ -12,7 +12,7 @@
     <InvariantGlobalization>true</InvariantGlobalization>
     <!-- CA1716: "Shared" ad fəzası PRD 121/153-də təsbit olunub, dəyişdirilmir. -->
     <NoWarn>$(NoWarn);CA1716</NoWarn>
-    <NaxcivanCSVersion>0.2.1</NaxcivanCSVersion>
+    <NaxcivanCSVersion>0.2.2</NaxcivanCSVersion>
     <Version>$(NaxcivanCSVersion)</Version>
     <Company>NaxcivanCS</Company>
     <Product>NaxcivanCS</Product>
