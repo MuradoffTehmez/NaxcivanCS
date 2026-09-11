@@ -89,4 +89,11 @@ Tab, B, E və G üçün input adları olsa da, tam scoreboard, alış, interacti
 
 Gameplay nəticəsinə server qərar verir. Client input göndərir; can, öldürmə və mükafat tələb etmir. Məhsul vizyonu rəqabətə, aydın görünüşə və kosmetik monetizasiyaya əsaslanır; store və pay-to-win mexanizmləri bu build-də yoxdur.
 
-Repo üçün açıq mənbə lisenziyası seçilməyib. Bu buraxılış MIT/Apache kimi yeni icazə vermir. Üçüncü tərəf materialı əlavə etməzdən əvvəl mənşə və istifadə icazəsi qeyd edilməlidir; layihənin IP qaydası Valve/Counter-Strike materiallarının köçürülməsini qəbul etmir.
+## Lisenziya və Müəlliflik Hüququ
+
+NaxcivanCS proqram təminatı və mənbə kodu **[GNU General Public License v3.0 (GPL-3.0)](LICENSE)** altında lisenziyalaşdırılır.
+
+* Layihədən istifadə edən, onu dəyişdirən və ya yayan hər kəs törəmə mənbə kodunu da eyni lisenziya şərtləri ilə açıq saxlamalıdır.
+* Müəlliflik hüququ: © 2026 Tahmaz Muradov.
+* Layihəyə istinad: [CITATION.cff](CITATION.cff)
+* Üçüncü tərəf materialı əlavə etməzdən əvvəl mənşə və istifadə icazəsi qeyd edilməlidir; layihənin IP qaydası Valve/Counter-Strike xüsusi materiallarının icazəsiz köçürülməsini qəbul etmir ([ASSETS.md](ASSETS.md)).

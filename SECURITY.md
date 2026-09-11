@@ -4,6 +4,13 @@
 
 0.2.2 araşdırma və lokal/LAN test prototipidir. Tam authentication, API rate limiting, heartbeat authorization və production moderasiya sistemi yoxdur. Server-authoritative dizayn bütün hücumlara qarşı zəmanət deyil.
 
+## Dəstəklənən versiyalar
+
+| Versiya | Dəstəklənir | Qeyd |
+|---|---|---|
+| 0.2.2 | :white_check_mark: | Cari əsas buraxılış |
+| < 0.2.2 | :x: | Köhnə prototiplər üçün dəstək verilmir |
+
 Cari inkişaf bazası main-dir. Əvvəlki teqlər üçün ayrıca təhlükəsizlik baxımı və cavab müddəti öhdəliyi elan edilməyib.
 
 ## Problem bildirmək

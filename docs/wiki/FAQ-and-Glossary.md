@@ -22,7 +22,7 @@
 
 **Bomba haradadır?** PRD və qaydalarda planlaşdırılıb; runtime objective yoxdur.
 
-**Açıq mənbə lisenziyası hansıdır?** Repo hələ ayrıca açıq mənbə lisenziyası seçməyib. Bu sənədlər yeni lisenziya vermir.
+**Açıq mənbə lisenziyası hansıdır?** Layihə [GNU General Public License v3.0 (GPL-3.0)](../../LICENSE) altında lisenziyalaşdırılıb. Bu, layihənin və onun törəmə kodlarının azad və açıq mənbə qalmasını təmin edir.
 
 ## Terminlər
 
