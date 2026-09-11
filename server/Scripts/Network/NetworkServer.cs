@@ -36,6 +36,7 @@ public sealed partial class NetworkServer : Node
         world.WeaponStateChanged += OnWeaponStateChanged;
         world.RoundStateChanged += OnRoundStateChanged;
         world.ScoreboardChanged += OnScoreboardChanged;
+        world.BombStateChanged += OnBombStateChanged;
     }
 
     public Error Listen(int port = GameConstants.DefaultServerPort, int maxPlayers = GameConstants.MaxPlayers)
@@ -203,6 +204,28 @@ public sealed partial class NetworkServer : Node
                 bravoScore,
                 (Team)roundWinner,
                 (RoundEndReason)endReason),
+            reliable: true);
+    }
+
+    /// <summary>
+    /// PRD 8 - Bomba vəziyyəti.
+    ///
+    /// Reliable: itən plant/defuse bildirişi client-i yanlış objective
+    /// vəziyyətində saxlayardı. Mesaj yalnız vəziyyət dəyişəndə göndərilir,
+    /// hər tick-də deyil.
+    /// </summary>
+    private void OnBombStateChanged(
+        int state, int carrierPeerId, Vector3 position, float plantProgress,
+        float defuseProgress, string plantedSite)
+    {
+        Broadcast(
+            PacketCodec.EncodeBombState(
+                (BombState)state,
+                carrierPeerId,
+                new System.Numerics.Vector3(position.X, position.Y, position.Z),
+                plantProgress,
+                defuseProgress,
+                plantedSite),
             reliable: true);
     }
 

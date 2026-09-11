@@ -48,6 +48,25 @@ public enum RoundEndReason
     TimeExpired = 5,
 }
 
+/// <summary>PRD 8 - Bombanın round daxilindəki vəziyyəti.</summary>
+public enum BombState
+{
+    /// <summary>Hucum eden oyuncunun uzerindedir.</summary>
+    Carried = 0,
+
+    /// <summary>Dasiyici olub, bomba yerde qalib.</summary>
+    Dropped = 1,
+
+    /// <summary>Site-a yerlesdirilib, taymer isleyir.</summary>
+    Planted = 2,
+
+    /// <summary>Mudafie zererzizlesdirdi.</summary>
+    Defused = 3,
+
+    /// <summary>Taymer bitdi, bomba partladi.</summary>
+    Exploded = 4,
+}
+
 /// <summary>PRD 14 - Silah kateqoriyaları (buy menu ilə eyni sıra, PRD 27).</summary>
 public enum WeaponCategory
 {

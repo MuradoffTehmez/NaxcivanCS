@@ -129,4 +129,46 @@ public sealed class ServerGameplayTests
         Assert.False(shot.Killed);
         Assert.Equal(120f, Vector3.Distance(shot.Origin, shot.End), 3);
     }
+
+    /// <summary>
+    /// Input-lar unreliable gedir: paket itən tick-də düymə buraxılmış
+    /// sayılmamalıdır, əks halda plant/defuse heç vaxt tamamlanmır.
+    /// </summary>
+    [Fact]
+    public void HeldButton_SurvivesTicksWithoutInput()
+    {
+        ServerPlayer player = Player();
+        var held = new InputCommand(1, 0, 0, 0, 0, 0, InputButtons.Interact);
+
+        player.RecordProcessedInput(held, 1000d);
+
+        Assert.True(player.IsHolding(InputButtons.Interact, 1000d, GameConstants.HeldInputGraceMs));
+        Assert.True(player.IsHolding(InputButtons.Interact, 1200d, GameConstants.HeldInputGraceMs));
+    }
+
+    [Fact]
+    public void HeldButton_ExpiresWhenClientGoesSilent()
+    {
+        ServerPlayer player = Player();
+        player.RecordProcessedInput(new InputCommand(1, 0, 0, 0, 0, 0, InputButtons.Interact), 1000d);
+
+        Assert.False(player.IsHolding(
+            InputButtons.Interact, 1000d + GameConstants.HeldInputGraceMs + 1d, GameConstants.HeldInputGraceMs));
+    }
+
+    [Fact]
+    public void ReleasingButton_IsObservedOnTheNextInput()
+    {
+        ServerPlayer player = Player();
+        player.RecordProcessedInput(new InputCommand(1, 0, 0, 0, 0, 0, InputButtons.Interact), 1000d);
+        player.RecordProcessedInput(new InputCommand(2, 0, 0, 0, 0, 0, InputButtons.None), 1016d);
+
+        Assert.False(player.IsHolding(InputButtons.Interact, 1016d, GameConstants.HeldInputGraceMs));
+    }
+
+    [Fact]
+    public void HeldButton_IsFalseBeforeAnyInput()
+    {
+        Assert.False(Player().IsHolding(InputButtons.Interact, 0d, GameConstants.HeldInputGraceMs));
+    }
 }

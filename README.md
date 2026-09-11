@@ -1,6 +1,6 @@
 # NaxcivanCS
 
-**Stable release: 0.3.0** · **main build: 0.3.1-dev (unreleased)** · **Protokol: 2**
+**Stable release: 0.3.0** · **main build: 0.3.1-dev (unreleased)** · **Protokol: 3**
 
 Stable buraxılış audio/gunplay prototipidir. Aşağıdakı cədvəl `main` kodunu təsvir edir; round sistemi, round economy və scoreboard hələ buraxılmayıb. Versiya mənbəyi [Directory.Build.props](Directory.Build.props), sinxronizasiya qaydası [RELEASING](docs/RELEASING.md) sənədindədir.
 
@@ -22,11 +22,12 @@ NaxcivanCS Naxçıvan memarlığı və coğrafiyasından ilhamlanan, Godot 4 .NE
 | Vizual feedback | Prosedural silah modeli, muzzle flash, tracer, hitmarker, crosshair, HUD |
 | Damage və respawn | Server hitscan, 200 ms tarixçə, 100 HP; respawn round başında |
 | Round sistemi | Freeze/Buy/Active/RoundEnd, MR12 skor, side swap, round economy |
+| Bomb/Defuse | A/B site, plant və defuse (kit ilə sürətli), bomba düşmə/götürmə, partlayış və defuse qalibiyyəti |
 | Audio | Prosedural sintez: atəş, reload, impact, səth əsaslı spatial addımlar |
 | Scoreboard | Tab ilə açılan server mənbəli cədvəl, round HUD və faza banneri |
 | Backend | Health, versiya və yaddaşda saxlanan server registry |
 | Shared qaydalar | Silah kataloqu, damage, economy, match və suspicion qaydaları |
-| Hələ tamamlanmayıb | Bomb/Defuse, alış menyusu, inventory, matchmaking, hesablar, voice chat, real xəritələr |
+| Hələ tamamlanmayıb | Alış menyusu, inventory, grenade, matchmaking, hesablar, voice chat, real xəritələr |
 
 **Prototipin mühüm məhdudiyyətləri:** hitscan divar örtüyünü yoxlamır; friendly fire filtri qoşulmayıb; server_default.json runtime loader-ə bağlanmayıb. [Ətraflı məhdudiyyətlər](docs/KNOWN_ISSUES.md).
 
@@ -71,10 +72,11 @@ Godot avtomatik tapılmasa `GODOT_BIN`-i executable yoluna təyin edin. [Quraşd
 | Space | Tullanmaq |
 | Ctrl | Çömbəlmək |
 | Shift | Yavaş hərəkət (səssiz) |
+| E (basılı saxlamaq) | Bomba plant / defuse |
 | Tab | Scoreboard |
 | Esc | Kursoru buraxmaq |
 
-`main`-də Tab scoreboard-u açır. B, E və G üçün alış, interaction və drop axınları hələ tamamlanmayıb. Shift ilə yavaş hərəkət səssizdir.
+`main`-də Tab scoreboard-u açır, E isə bomba plant/defuse üçün işləyir. B və G üçün alış və drop axınları hələ tamamlanmayıb. Shift ilə yavaş hərəkət səssizdir.
 
 ## Repo xəritəsi
 

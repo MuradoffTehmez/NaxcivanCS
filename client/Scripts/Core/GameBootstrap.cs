@@ -75,6 +75,7 @@ public sealed partial class GameBootstrap : Node3D
         _network.ShotFired += OnShotFired;
         _network.WeaponStateReceived += OnWeaponStateReceived;
         _network.RoundStateReceived += OnRoundStateReceived;
+        _network.BombStateReceived += OnBombStateReceived;
         _network.ScoreboardReceived += OnScoreboardReceived;
         _network.Disconnected += OnDisconnected;
 
@@ -347,6 +348,17 @@ public sealed partial class GameBootstrap : Node3D
             bravoScore,
             (Team)roundWinner,
             (RoundEndReason)endReason);
+
+    /// <summary>PRD 8 - Serverdən gələn bomba vəziyyəti.</summary>
+    private void OnBombStateReceived(
+        int state, int carrierPeerId, Vector3 position, float plantProgress,
+        float defuseProgress, string plantedSite)
+        => _roundHud?.UpdateBomb(
+            (BombState)state,
+            carrierPeerId == _network?.LocalPeerId,
+            plantProgress,
+            defuseProgress,
+            plantedSite);
 
     private void OnScoreboardReceived(byte[] payload)
     {

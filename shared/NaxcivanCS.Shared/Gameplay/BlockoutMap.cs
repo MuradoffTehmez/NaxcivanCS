@@ -13,6 +13,12 @@ namespace NaxcivanCS.Shared.Gameplay;
 /// <param name="Surface">PRD 84 - footstep və penetration üçün material.</param>
 public readonly record struct MapBlock(string Name, Vector3 Center, Vector3 Size, SurfaceMaterial Surface);
 
+/// <summary>PRD 8 - Bomba yerləşdirilə bilən objective sahəsi.</summary>
+/// <param name="Name">Callout adı (PRD 33) — "A" və ya "B".</param>
+/// <param name="Center">Sahənin mərkəzi.</param>
+/// <param name="Size">Sahənin ölçüsü (en, hündürlük, dərinlik).</param>
+public readonly record struct BombSite(string Name, Vector3 Center, Vector3 Size);
+
 /// <summary>
 /// PRD 127 - Prototype test xəritəsinin block-out həndəsəsi.
 ///
@@ -55,6 +61,39 @@ public static class BlockoutMap
         new("Wall_East", new Vector3(HalfExtent, WallHeight / 2f, 0f), new Vector3(1f, WallHeight, 40f), SurfaceMaterial.Stone),
         new("Wall_West", new Vector3(-HalfExtent, WallHeight / 2f, 0f), new Vector3(1f, WallHeight, 40f), SurfaceMaterial.Stone),
     };
+
+    /// <summary>
+    /// PRD 8 - İki objective sahəsi. Hər ikisi müdafiənin (Bravo) yarısındadır,
+    /// ona görə hücum edən komanda xəritəni keçməlidir.
+    /// </summary>
+    public static IReadOnlyList<BombSite> Sites { get; } = new BombSite[]
+    {
+        new("A", new Vector3(-9f, 1.5f, 7f), new Vector3(7f, 3f, 7f)),
+        new("B", new Vector3(9f, 1.5f, 7f), new Vector3(7f, 3f, 7f)),
+    };
+
+    /// <summary>
+    /// PRD 8 - Nöqtə hansı site-ın içindədir? Heç birində deyilsə <c>null</c>.
+    ///
+    /// Client və server eyni cavabı verməlidir, əks halda oyunçu plant edə
+    /// bildiyini düşünüb serverdə rədd edilər.
+    /// </summary>
+    public static string? SiteAt(Vector3 position)
+    {
+        foreach (BombSite site in Sites)
+        {
+            Vector3 half = site.Size / 2f;
+
+            if (position.X >= site.Center.X - half.X && position.X <= site.Center.X + half.X &&
+                position.Y >= site.Center.Y - half.Y && position.Y <= site.Center.Y + half.Y &&
+                position.Z >= site.Center.Z - half.Z && position.Z <= site.Center.Z + half.Z)
+            {
+                return site.Name;
+            }
+        }
+
+        return null;
+    }
 
     /// <summary>
     /// PRD 84 - Verilmiş nöqtənin ALTINDAKI səthin materialı.

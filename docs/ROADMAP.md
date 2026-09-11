@@ -11,6 +11,7 @@ Cari stable buraxılış hələ prototip mərhələsindədir. Versiya adı mərh
 - Silah view model-i, tracer, muzzle flash, hitmarker və HUD.
 - Prosedural audio: atəş, reload, impact və səth əsaslı spatial addım səsləri.
 - Round sistemi: Freeze/Buy/Active/RoundEnd, MR12 skor, side swap, round economy, scoreboard.
+- Bomb/Defuse: A/B site, plant/defuse, bomba düşmə-götürmə, partlayış və defuse qalibiyyəti.
 - Backend versiya/registry skeleti; CI və iki client smoke testi.
 
 ## Növbəti mərhələ — core etibarlılığı
@@ -27,7 +28,7 @@ Cari stable buraxılış hələ prototip mərhələsindədir. Versiya adı mərh
 
 - [x] Round reset, scoreboard və komanda lifecycle-ı (5v5 yük altında sınanmayıb).
 - [x] MR12 skor və side swap. **Overtime** yalnız vəziyyət kimi qeyd olunur — PRD-dəki 3 hücum / 3 müdafiə formatı hələ yoxdur.
-- [ ] Plant/defuse, A/B site, victory şərtləri.
+- [x] Plant/defuse, A/B site, victory şərtləri (blockout site-ları; real xəritə zonaları Phase 2-dədir).
 - [ ] Buy menu, inventory, weapon switch/drop/pickup.
 - [ ] Economy inteqrasiyası, grenade və server smoke/flash.
 

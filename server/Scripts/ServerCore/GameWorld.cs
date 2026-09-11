@@ -54,8 +54,20 @@ public sealed partial class GameWorld : Node3D
     /// </summary>
     private readonly MatchDirector _match = new();
 
+    /// <summary>
+    /// PRD 8 - Bomba objective-i. Round idarəçisi kimi saf shared state machine;
+    /// plant/defuse qaydaları burada deyil, unit testlə örtülmüş sinifdədir.
+    /// </summary>
+    private readonly BombDirector _bomb = new();
+
+    /// <summary>Hər tick yenidən doldurulur — allocation-dan qaçmaq üçün sahədədir.</summary>
+    private readonly List<BombInteractor> _bombInteractors = new();
+
     /// <summary>Snapshot yayım tezliyi — hər N tick-də bir (64 tick / 2 = 32 Hz).</summary>
     private const int SnapshotEveryNTicks = 2;
+
+    /// <summary>PRD 8 - Plant/defuse progress bar tezliyi (64 tick / 6 ≈ 10 Hz).</summary>
+    private const int BombProgressEveryNTicks = 6;
 
     public IReadOnlyDictionary<int, ServerPlayer> Players => _players;
 
@@ -93,11 +105,23 @@ public sealed partial class GameWorld : Node3D
 
     public void RemovePlayer(int peerId)
     {
+        // PRD 8 - Daşıyıcı ayrılarsa bomba yerdə qalmalıdır; əks halda o round
+        // ərzində heç kim plant edə bilməz.
+        bool bombDropped = _players.TryGetValue(peerId, out ServerPlayer? leaving)
+            && peerId == _bomb.CarrierPeerId
+            && _bomb.OnCarrierDied(leaving.Movement.Position) != BombEvent.None;
+
         _players.Remove(peerId);
 
         if (_bodies.Remove(peerId, out CharacterBody3D? body))
         {
             body.QueueFree();
+        }
+
+        if (bombDropped)
+        {
+            SyncBombOwnership();
+            BroadcastBombState();
         }
     }
 
@@ -107,6 +131,8 @@ public sealed partial class GameWorld : Node3D
         _serverTimeMs += delta * 1000.0;
 
         var fixedDelta = (float)delta;
+
+        _bombInteractors.Clear();
 
         foreach (ServerPlayer player in _players.Values)
         {
@@ -122,10 +148,22 @@ public sealed partial class GameWorld : Node3D
 
             TickWeapon(player, weaponButtons, fixedDelta);
 
+            // PRD 8 - Bomba qərarı üçün bu tick-dəki niyyət.
+            _bombInteractors.Add(new BombInteractor(
+                player.PeerId,
+                player.State.Team,
+                player.State.IsAlive,
+                player.Movement.Position,
+                player.IsHolding(InputButtons.Interact, _serverTimeMs, GameConstants.HeldInputGraceMs),
+                player.State.HasDefuseKit));
+
             // PRD 45 - Lag compensation üçün mövqe tarixçəsi.
             player.History.Record(_serverTimeMs, player.Movement.Position, player.Movement.Yaw, player.Movement.IsCrouching);
         }
 
+        // Bomba match-dən ƏVVƏL tick edilir: eyni tick-də həm plant tamamlanıb,
+        // həm round vaxtı bitibsə, plant üstün gəlməlidir (PRD 8).
+        TickBomb(fixedDelta);
         TickMatch(fixedDelta);
 
         if (_tick % SnapshotEveryNTicks == 0)
@@ -139,9 +177,19 @@ public sealed partial class GameWorld : Node3D
     /// </summary>
     private void TickMatch(float delta)
     {
-        MatchEvent result = _match.Tick(
-            delta, CountAlive(Team.Alpha), CountAlive(Team.Bravo), _players.Count);
+        ApplyMatchEvent(_match.Tick(
+            delta, CountAlive(Team.Alpha), CountAlive(Team.Bravo), _players.Count));
+    }
 
+    /// <summary>
+    /// PRD 9, 10 - Match hadisəsini tətbiq edir.
+    ///
+    /// Hadisə həm taymer tick-indən, həm də bomba plant/defuse-undan gələ bilər,
+    /// ona görə emal tək yerdədir: əks halda defuse roundunda round pulu
+    /// paylanmaz, plant-dan sonra isə yeni faza client-lərə göndərilməzdi.
+    /// </summary>
+    private void ApplyMatchEvent(MatchEvent result)
+    {
         switch (result)
         {
             case MatchEvent.None:
@@ -157,6 +205,15 @@ public sealed partial class GameWorld : Node3D
                 break;
 
             case MatchEvent.RoundEnded:
+                // PRD 8 - Bomba taymeri round fazası ilə idarə olunur; faza
+                // bitib roundu BombExploded ilə bağlayıbsa bombanı da bağlayırıq.
+                if (_match.LastRoundEndReason == RoundEndReason.BombExploded
+                    && _bomb.OnTimerExpired() != BombEvent.None)
+                {
+                    AwardBombExplosion();
+                    BroadcastBombState();
+                }
+
                 ApplyRoundPayout();
                 GD.Print($"[Match] Round {_match.RoundNumber}: {_match.RoundWinner} qazandi " +
                          $"({_match.LastRoundEndReason}) — {_match.AlphaScore}:{_match.BravoScore}");
@@ -177,6 +234,135 @@ public sealed partial class GameWorld : Node3D
         BroadcastRoundState();
     }
 
+    /// <summary>
+    /// PRD 8 - Bomba tick-i və onun match-ə təsiri.
+    ///
+    /// Plant round taymerini bomba taymeri ilə əvəz edir, defuse isə roundu
+    /// müdafiənin xeyrinə bitirir. Hər iki halda economy mükafatı verilir.
+    /// </summary>
+    private void TickBomb(float delta)
+    {
+        BombEvent result = _bomb.Tick(delta, _match.Phase, _bombInteractors);
+
+        switch (result)
+        {
+            case BombEvent.Planted:
+                SyncBombOwnership();
+                AwardPlant();
+                ApplyMatchEvent(_match.OnBombPlanted());
+                GD.Print($"[Bomb] {_bomb.PlantedSite} site-da yerlesdirildi (peer {_bomb.PlanterPeerId})");
+                EmitSignal(SignalName.ScoreboardChanged);
+                break;
+
+            case BombEvent.Defused:
+                AwardDefuse();
+                GD.Print($"[Bomb] Zererzizlesdirildi (peer {_bomb.DefuserPeerId})");
+                ApplyMatchEvent(_match.OnBombDefused());
+                break;
+
+            case BombEvent.PickedUp:
+                SyncBombOwnership();
+                break;
+
+            case BombEvent.None:
+                return;
+
+            case BombEvent.PlantProgressed:
+            case BombEvent.DefuseProgressed:
+                // İrəliləyiş yalnız progress bar üçündür; hər tick-də reliable
+                // paket göndərmək lazım deyil, ~10 Hz kifayətdir.
+                if (_tick % BombProgressEveryNTicks == 0)
+                {
+                    BroadcastBombState();
+                }
+
+                return;
+
+            default:
+                break;
+        }
+
+        BroadcastBombState();
+    }
+
+    /// <summary>PRD 25 - Plant mükafatı: komandaya və yerləşdirən oyunçuya.</summary>
+    private void AwardPlant()
+    {
+        foreach (ServerPlayer player in _players.Values)
+        {
+            if (player.State.Team != Team.Alpha)
+            {
+                continue;
+            }
+
+            int reward = GameConstants.BombPlantTeamReward
+                + (player.PeerId == _bomb.PlanterPeerId ? GameConstants.BombPlantPlayerReward : 0);
+            player.State.Money = EconomyRules.AddMoney(player.State.Money, reward);
+        }
+    }
+
+    /// <summary>PRD 25 - Bomba partlayarsa hücum edən komanda əlavə mükafat alır.</summary>
+    private void AwardBombExplosion()
+    {
+        foreach (ServerPlayer player in _players.Values)
+        {
+            if (player.State.Team == Team.Alpha)
+            {
+                player.State.Money = EconomyRules.AddMoney(
+                    player.State.Money, GameConstants.BombExplodedTeamReward);
+            }
+        }
+    }
+
+    /// <summary>PRD 25 - Defuse mükafatı yalnız zərərsizləşdirən oyunçuya.</summary>
+    private void AwardDefuse()
+    {
+        if (_players.TryGetValue(_bomb.DefuserPeerId, out ServerPlayer? defuser))
+        {
+            defuser.State.Money = EconomyRules.AddMoney(
+                defuser.State.Money, GameConstants.BombDefusePlayerReward);
+        }
+    }
+
+    /// <summary>Yalnız cari daşıyıcıda <c>HasBomb</c> qalır.</summary>
+    private void SyncBombOwnership()
+    {
+        foreach (ServerPlayer player in _players.Values)
+        {
+            player.State.HasBomb = player.PeerId == _bomb.CarrierPeerId;
+        }
+    }
+
+    /// <summary>PRD 8 - Round başında bomba hücum edən ilk oyunçuya verilir.</summary>
+    private void AssignBombCarrier()
+    {
+        ServerPlayer? carrier = _players.Values
+            .Where(p => p.State.Team == Team.Alpha)
+            .OrderBy(p => p.PeerId)
+            .FirstOrDefault();
+
+        _bomb.BeginRound(
+            carrier?.PeerId ?? 0,
+            carrier?.Movement.Position ?? BlockoutMap.SpawnPosition(Team.Alpha, 0));
+
+        SyncBombOwnership();
+        BroadcastBombState();
+    }
+
+    private void BroadcastBombState() => EmitSignal(
+        SignalName.BombStateChanged,
+        (int)_bomb.State,
+        _bomb.CarrierPeerId,
+        new Vector3(_bomb.Position.X, _bomb.Position.Y, _bomb.Position.Z),
+        _bomb.PlantProgress,
+        _bomb.DefuseProgress,
+        _bomb.PlantedSite);
+
+    [Signal]
+    public delegate void BombStateChangedEventHandler(
+        int state, int carrierPeerId, Vector3 position, float plantProgress,
+        float defuseProgress, string plantedSite);
+
     /// <summary>PRD 10 - Yeni round: hamı dirilir, silahlar dolur, mövqelər sıfırlanır.</summary>
     private void StartNewRound()
     {
@@ -189,6 +375,7 @@ public sealed partial class GameWorld : Node3D
         }
 
         _match.RegisterRoundRoster(CountTeam(Team.Alpha), CountTeam(Team.Bravo));
+        AssignBombCarrier();
         EmitSignal(SignalName.ScoreboardChanged);
 
         GD.Print($"[Match] Round {_match.RoundNumber} basladi " +
@@ -341,6 +528,13 @@ public sealed partial class GameWorld : Node3D
         {
             player.State.Kills++;
             GD.Print($"[GameWorld] {player.State.Username} → {victim.State.Username} ({result.HitBox})");
+
+            // PRD 8 - Daşıyıcı öldükdə bomba öldüyü yerə düşür və götürülə bilər.
+            if (victimId == _bomb.CarrierPeerId && _bomb.OnCarrierDied(victim.Movement.Position) != BombEvent.None)
+            {
+                SyncBombOwnership();
+                BroadcastBombState();
+            }
         }
 
         EmitSignal(
@@ -414,6 +608,7 @@ public sealed partial class GameWorld : Node3D
         foreach (InputCommand input in player.DequeueInputsForTick())
         {
             lastButtons = input.Buttons;
+            player.RecordProcessedInput(input, _serverTimeMs);
 
             // PRD 10 - Freeze time: baxış bucağı yenilənir, yerdəyişmə yox.
             if (movementLocked)
