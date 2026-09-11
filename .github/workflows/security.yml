@@ -1,0 +1,118 @@
+# PRD 111, 112, 123 - Təhlükəsizlik yoxlamaları.
+#
+# CodeQL statik analizi ayrıca workflow-dadır (codeql.yml). Burada asılılıq
+# zənciri və repo gigiyenası yoxlanılır.
+name: Security
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Hər bazar ertəsi 05:00 UTC. Kod dəyişməsə də yeni CVE-lər çıxır,
+    # ona görə cədvəlli skan lazımdır.
+    - cron: '0 5 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # PR-ın gətirdiyi YENİ asılılıqları yoxlayır: zəiflik və lisenziya.
+  # Yalnız PR-da işləyir, çünki iki ref arasında müqayisə tələb edir.
+  dependency-review:
+    name: Dependency review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/dependency-review-action@v4
+        with:
+          # Orta və yuxarı səviyyəli zəiflik PR-ı bloklayır.
+          fail-on-severity: moderate
+          comment-summary-in-pr: on-failure
+          # PRD 144 - GPLv3 layihəsinə uyğun gəlməyən lisenziyalar.
+          # GPL-uyumlu olmayan copyleft və qeyri-azad lisenziyalar rədd edilir.
+          deny-licenses: AGPL-3.0, SSPL-1.0, BUSL-1.1, Elastic-2.0
+
+  # Bütün asılılıqlarda (transitive daxil) məlum zəiflikləri axtarır.
+  vulnerable-packages:
+    name: Vulnerable package scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore NaxcivanCS.sln
+
+      - name: Scan for vulnerable packages
+        run: |
+          dotnet list NaxcivanCS.sln package --vulnerable --include-transitive 2>&1 | tee audit.log
+          if grep -q "has the following vulnerable packages" audit.log; then
+            echo "::error::Zəif paketlər tapıldı — audit.log-a baxın"
+            exit 1
+          fi
+
+      - name: Scan for deprecated packages
+        run: dotnet list NaxcivanCS.sln package --deprecated 2>&1 | tee deprecated.log
+        continue-on-error: true
+
+  # Repo gigiyenası: gizli məlumat və böyük binar fayl commit edilməsin.
+  repository-hygiene:
+    name: Repository hygiene
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # PRD 111 - Parol, token, .env və açar faylları repoda olmamalıdır.
+      # GitHub-ın secret scanning-i əsas müdafiədir; bu, əlavə qatdır.
+      - name: Check for committed secrets
+        run: |
+          PATTERNS='\.env$|\.pfx$|\.p12$|_rsa$|\.pem$|id_ed25519$|secrets\.json$'
+          FOUND=$(git ls-files | grep -E "$PATTERNS" || true)
+
+          if [ -n "$FOUND" ]; then
+            echo "::error::Gizli fayl repoda tapıldı:"
+            echo "$FOUND"
+            exit 1
+          fi
+
+          echo "OK: gizli fayl tapılmadı"
+
+      # Oyun repolarında asset-lər tez böyüyür; git LFS-siz bu, klonu ağırlaşdırır.
+      - name: Check for oversized files
+        run: |
+          LIMIT=$((5 * 1024 * 1024))
+          OVERSIZED=""
+
+          while IFS= read -r file; do
+            [ -f "$file" ] || continue
+            SIZE=$(stat -c%s "$file")
+            if [ "$SIZE" -gt "$LIMIT" ]; then
+              OVERSIZED="$OVERSIZED\n  $file ($((SIZE / 1024 / 1024)) MB)"
+            fi
+          done < <(git ls-files)
+
+          if [ -n "$OVERSIZED" ]; then
+            echo "::warning::5 MB-dan böyük fayllar (Git LFS nəzərdən keçirilməlidir):"
+            echo -e "$OVERSIZED"
+          else
+            echo "OK: 5 MB-dan böyük fayl yoxdur"
+          fi

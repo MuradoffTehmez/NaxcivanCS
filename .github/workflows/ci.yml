@@ -126,20 +126,3 @@ jobs:
 
       - name: Build backend image
         run: docker build -f infrastructure/docker/backend.dockerfile -t naxcivancs-backend:${{ github.sha }} .
-
-  # PRD 111, 123 - Security scan
-  security:
-    name: Dependency audit
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: '8.0.x'
-
-      - name: Vulnerable package scan
-        run: |
-          dotnet restore NaxcivanCS.sln
-          dotnet list NaxcivanCS.sln package --vulnerable --include-transitive 2>&1 | tee audit.log
-          ! grep -q "has the following vulnerable packages" audit.log

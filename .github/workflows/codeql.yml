@@ -1,0 +1,74 @@
+# PRD 111, 123 - Statik təhlükəsizlik analizi.
+#
+# CodeQL C# kodunu və GitHub Actions workflow-larını skan edir. Nəticələr
+# Security → Code scanning bölməsində görünür.
+#
+# Niyə ayrıca workflow? CI hər push-da işləyir və sürətli olmalıdır; CodeQL
+# isə xeyli uzundur. Ayrı olduqda CI-ın geri dönüş vaxtı pozulmur.
+name: CodeQL
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Hər bazar 04:30 UTC — yeni aşkarlanmış zəifliklər üçün.
+    # Kod dəyişməsə belə CodeQL qaydaları yenilənir.
+    - cron: '30 4 * * 0'
+
+# Eyni branch üçün paralel işləyən analizləri ləğv et.
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    permissions:
+      # Nəticələri Security tabına yazmaq üçün.
+      security-events: write
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: csharp
+            build-mode: manual
+          - language: actions
+            build-mode: none
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        if: matrix.language == 'csharp'
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          # security-extended: standart dəstdən daha geniş qayda toplusu.
+          queries: security-extended
+
+      # C# üçün əl ilə build: Godot layihələri solution-a daxil deyil,
+      # ona görə autobuild onları görməzdi.
+      - name: Build
+        if: matrix.language == 'csharp'
+        run: |
+          dotnet build NaxcivanCS.sln --configuration Release
+          dotnet build server/NaxcivanCS.Server.csproj --configuration Release
+          dotnet build client/NaxcivanCS.Client.csproj --configuration Release
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: /language:${{ matrix.language }}
