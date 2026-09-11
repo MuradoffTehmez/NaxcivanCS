@@ -50,6 +50,27 @@ Silah JSON-ları startup-da WeaponCatalog ilə oxunur. Server əvvəl repo confi
 
 server_default.json üçün runtime loader yoxdur. Tick, maxPlayers, round/economy default-ları kod/proyekt konfiqurasiyasında qalır. JSON redaktəsi avtomatik olaraq bütün gameplay parametrlərini dəyişmir; hot reload da yoxdur.
 
+## Lisenziya və authority əlaqəsi
+
+Layihə GPLv3-dür: istənilən kəs client-i və serveri fork edib yaya bilər.
+Bu, arxitekturaya konkret tələb qoyur — **client-in özündə saxladığı heç bir
+dəyər etibarlı sayıla bilməz**, çünki dəyişdirilmiş client mənbədən qurula bilər.
+
+PRD 156 onsuz da bunu tələb edir; GPLv3 sadəcə seçimi məcburi edir:
+
+| Sahə | Harada təyin olunur | Fork edilmiş client nə edə bilər |
+|---|---|---|
+| Health, damage, kill | Dedicated server | Heç nə — server hesablayır |
+| Atəş kadensiyası, recoil | Dedicated server | Heç nə — server qərar verir |
+| Hərəkət sürəti | Dedicated server (validasiya) | Heç nə — server rədd edir |
+| **Cosmetics inventarı** | **Backend (PostgreSQL)** | Yalnız özünə göstərə bilər |
+| Rank, MMR, XP | Backend | Heç nə |
+
+Cosmetics üçün nəticə (PRD 73, 90): satın alınmış skin-lərin siyahısı backend-də
+saxlanılmalı və **match serverinə backend-dən gəlməlidir**, client-dən yox.
+Fork edilmiş client özünə istənilən skin göstərə bilər, lakin digər oyunçular
+serverin təsdiqlədiyini görür. Monetizasiyanın bütövlüyü buna bağlıdır.
+
 ## Versiya sərhədi
 
 Build/game/content 0.2.2; Git teqi 0.2.2; protocol 2. Handshake yalnız protocol bərabərliyini yoxlayır. Content hash və patch doğrulaması hələ yoxdur.

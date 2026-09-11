@@ -53,6 +53,46 @@ public static class BlockoutMap
         new("Wall_West", new Vector3(-HalfExtent, WallHeight / 2f, 0f), new Vector3(1f, WallHeight, 40f), SurfaceMaterial.Stone),
     };
 
+    /// <summary>
+    /// PRD 84 - Verilmiş nöqtənin ALTINDAKI səthin materialı.
+    ///
+    /// Addım səsi buna görə seçilir. Oyunçunun ayağı altındakı ən yüksək blok
+    /// tapılır; heç nə yoxdursa <see cref="SurfaceMaterial.Concrete"/> qaytarılır.
+    /// </summary>
+    /// <param name="position">Oyunçunun ayaq nöqtəsi.</param>
+    /// <param name="probeDepth">Nə qədər aşağı baxılsın, metr.</param>
+    public static SurfaceMaterial SurfaceAt(Vector3 position, float probeDepth = 0.6f)
+    {
+        SurfaceMaterial result = SurfaceMaterial.Concrete;
+        float highestTop = float.NegativeInfinity;
+
+        foreach (MapBlock block in Blocks)
+        {
+            float halfX = block.Size.X / 2f;
+            float halfZ = block.Size.Z / 2f;
+
+            bool insideXz =
+                position.X >= block.Center.X - halfX && position.X <= block.Center.X + halfX &&
+                position.Z >= block.Center.Z - halfZ && position.Z <= block.Center.Z + halfZ;
+
+            if (!insideXz)
+            {
+                continue;
+            }
+
+            float top = block.Center.Y + (block.Size.Y / 2f);
+
+            // Ayağın altında və çatan məsafədə olan ən yüksək səth.
+            if (top <= position.Y + 0.05f && top >= position.Y - probeDepth && top > highestTop)
+            {
+                highestTop = top;
+                result = block.Surface;
+            }
+        }
+
+        return result;
+    }
+
     /// <summary>Komandanın spawn mövqeyi. <paramref name="index"/> 0-dan başlayır.</summary>
     public static Vector3 SpawnPosition(Team team, int index)
     {

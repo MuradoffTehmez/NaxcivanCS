@@ -14,9 +14,30 @@ ShotEffects tracer və impact görüntüsü yaradır. Lokal atıcıda tracer sil
 
 ## Audio vəziyyəti
 
-Tam shot, reload, footstep, hit, voice və material audio sistemi yoxdur. Audio qovluğunun olması işlək səs pipeline-ı demək deyil. Səs gəlməməsi bu release-də avtomatik cihaz problemi sayılmamalıdır.
+Atəş, reload, impact, hit marker və material əsaslı footstep səsləri işləyir. Voice chat (PRD 64), qumbara, bomba və qapı səsləri hələ yoxdur.
 
-Yeni audio üçün asset mənbəyi, playback məsafəsi, spatial/2D seçimi, eyni vaxtlı voice limiti və volume kateqoriyası sənədləşdirilməlidir.
+**Səslər kodda sintez olunur — layihədə audio faylı yoxdur.** `ProceduralAudio` küy, sinus, eksponensial zərf və birpolyus filtrlərdən istifadə edərək `AudioStreamWav` yaradır. Səbəb hüquqidir: PRD 143 orijinal audio tələb edir, PRD 144 başqa oyunların səslərini qadağan edir. Sintez edilmiş səs təbiətcə orijinaldır. Bu, final səs dizaynı deyil.
+
+| Səs | Kanal | Məsafə |
+|---|---|---|
+| Öz atəşin, hit marker, öz reload-un | 2D (`AudioStreamPlayer`) | — |
+| Başqasının atəşi | 3D | 70 m |
+| Güllə impact-ı | 3D | 70 m |
+| Addım, başqasının reload-u | 3D | 24 m |
+
+3D oxuducular 24 elementlik hovuzdan verilir; spray zamanı hər atəş üçün node yaratmaq GC yükü yaradardı.
+
+### Footstep məntiqi
+
+Addımlar taymerlə deyil, qət edilmiş məsafə ilə ölçülür (`FootstepTracker`, stride 1.9 m). Shift ilə addımlayan və çömbəlmiş oyunçu **səssizdir** — bu, taktiki FPS-in təməl mexanikasıdır. Addım mənbəyi server-authoritative mövqelərdir, ona görə oyunçu öz addım səsini başqasının client-ində gizlədə bilmir.
+
+Səth materialı `BlockoutMap.SurfaceAt()` ilə ayağın altındakı blokdan götürülür (PRD 84). Ölçülmüş parlaqlıq aralığı 568 Hz (taxta) — 7612 Hz (beton), yəni materiallar qulaqla fərqlənir.
+
+### Yoxlama
+
+`--dump-audio <qovluq>` sintez edilmiş səsləri WAV kimi yazır. Bu, oyunu işə salmadan dalğa formasını analiz etməyə imkan verir: səssizlik, klipinq və materialların fərqliliyi bu yolla yoxlanılıb.
+
+Hələ sənədləşdirilməli olanlar: eyni vaxtlı voice limiti, volume kateqoriyaları (PRD 80) və occlusion.
 
 ## Dillər
 
