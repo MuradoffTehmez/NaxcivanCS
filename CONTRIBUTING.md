@@ -20,6 +20,21 @@ git switch -c feature/short-description
 
 Solo development ayrıca məcburi reviewer tələb etməyə bilər, lakin CI nəticələri yoxlanmalıdır. Branch protection varsa onu keçməyin.
 
+### Branch qaydası
+
+İş `develop`-a gedir, `main`-ə yox. `main` yalnız `release/*` qəbul edir.
+
+```bash
+git checkout develop && git pull
+git checkout -b feature/qisa-ad
+# ... iş ...
+git commit -s -m "feat(server): ..."
+gh pr create --base develop
+```
+
+`main`-ə birbaşa PR açsanız, branch protection onu bloklayacaq.
+Tam axın: [Release Workflow](docs/wiki/Release-Workflow.md).
+
 ## Kod standartları
 
 Nullable və implicit usings aktivdir. Sinif/metod/property üçün PascalCase, lokal dəyişən üçün camelCase, private field üçün _camelCase işlədin. Faylın mövcud üslubunu saxlayın. Shared qatına Godot tipi əlavə etməyin. Client-dən health, kill, money və rank təyin edən mesaj qəbul etməyin.

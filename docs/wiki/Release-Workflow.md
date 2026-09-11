@@ -1,45 +1,61 @@
-# Buraxılış və Wiki nəşri
+# Buraxılış və iş axını
 
-## 0.2.2 versiya xəritəsi
+## Branch modeli (PRD 122)
 
-| Mənbə | Dəyər |
-|---|---|
-| Git tag | 0.2.2 |
-| Directory.Build.props | 0.2.2 |
-| GameConstants.GameVersion | 0.2.2 |
-| GameConstants.ContentVersion | 0.2.2 |
-| Client/server config/version | 0.2.2 |
-| ProtocolVersion | 2 |
-
-Əvvəlki teqlər v0.1.0, v0.2.0 və v0.2.1-dir. Yeni teqin dəqiq adı istifadəçinin istədiyi 0.2.2-dir. ProtocolVersion müstəqil integer-dir; content hash yoxlaması deyil.
-
-## Release addımları
-
-Əvvəl mənbə budağını main ilə müqayisə edin, build/test və CI nəticəsini yoxlayın. Sonra reviewed release dəyişikliklərini main-ə merge edin, annotated tag yaradın və konkret main/tag ref-lərini push edin. Mövcud teq overwrite edilməməlidir.
-
-Changelog gameplay dəyişikliklərini, release hesabatı real yoxlama sübutlarını, known issues isə açıq məhdudiyyətləri saxlayır. Release title-da “stable production” kimi təsdiqlənməmiş iddia yazmayın.
-
-## Wiki ayrı repodur
-
-GitHub Wiki əsas repository-nin docs qovluğunu avtomatik göstərmir. Onun Git ünvanı NaxcivanCS.wiki.git-dir. İlk səhifə GitHub UI-də yaradılmayıbsa clone “Repository not found” verə bilər.
-
-İlk Home səhifəsi saxlandıqdan sonra:
-
-```powershell
-pwsh -NoProfile -File tools/publish-wiki.ps1 -SourceRef 0.2.2
-pwsh -NoProfile -File tools/publish-wiki.ps1 -SourceRef 0.2.2 -Publish
+```text
+feature/*  ─┐
+fix/*      ─┼─►  develop  ─►  release/*  ─►  main  ─►  teq + GitHub Release
+codex/*    ─┘                                  │
+                                               └─►  develop (geri sinxron)
 ```
 
-Birinci əmr artifacts/wiki altında nəşrə hazır faylları yaradır. İkinci əmr ayrıca Wiki clone-u yaradıb faylları commit/push edir. Default publish açıq deyil; -Publish tələb olunur.
+| Branch | Rolu | Kim yazır |
+|---|---|---|
+| `main` | Buraxılmış, sabit kod. Hər commit-i teqlənə bilər. | Yalnız `release/*` və təcili `fix/*` |
+| `develop` | İnteqrasiya. Bütün iş burada birləşir. | `feature/*`, `fix/*`, dependabot |
+| `feature/*` | Yeni funksionallıq | Töhfə verən |
+| `release/*` | Versiya qaldırma, CHANGELOG, son yoxlama | Buraxılışı hazırlayan |
 
-## Link strategiyası
+**Qayda:** `main`-ə birbaşa PR açılmır. İş `develop`-a gedir; `develop`-da bütün
+yoxlamalar yaşıl olduqda `release/*` vasitəsilə `main`-ə çıxarılır.
 
-Mənbə səhifələri local .md linkləri istifadə edir. Export zamanı Wiki-daxili linklər GitHub Wiki URL-sinə çevrilir, repo mənbələrinə linklər SourceRef teqindəki blob/tree URL-sinə bağlanır. _Sidebar və _Footer nəşrdə naviqasiyanı təmin edir.
+> Bu qayda təcrübədən gəlir: əvvəllər feature-lər birbaşa `main`-ə merge olunur,
+> sonra `main` geri `develop`-a merge edilirdi. Hər sinxron `develop`-a əlavə
+> merge commit-i yazırdı və iki branch-in commit sayı fərqlənirdi — kod eyni
+> olsa belə. İndi `develop` həmişə `main`-dən irəlidədir, geri merge lazım deyil.
 
-Əvvəlki, artıq mənbədə olmayan Wiki səhifələri avtomatik silinmir. Belə silinmə ayrıca review tələb edən bakım qərarıdır.
+## Buraxılış addımları
 
-## Dəyişiklik baxımı
+1. `develop`-dan `release/X.Y.Z` yarat.
+2. Versiyanı dörd yerdə qaldır: `Directory.Build.props`, `GameConstants.cs`
+   (`GameVersion` + `ContentVersion`), `client/project.godot`, `server/project.godot`.
+3. `ProtocolVersion`-a **yalnız** wire format dəyişibsə toxun. Dəyişibsə,
+   köhnə client-lər rədd ediləcək — bunu buraxılış qeydlərində yaz.
+4. CHANGELOG-da `Buraxılmamış` bölməsini versiya başlığına çevir.
+5. Tam yoxlama: `dotnet test`, `tools/e2e-smoke-test.sh`, `tools/check-doc-links.ps1`.
+6. `main`-ə və `develop`-a merge et.
+7. Teq: **prefikssiz** (`0.3.0`). İlk üç buraxılış `v` prefiksi ilədir; onlar
+   tarix olaraq olduğu kimi qalır.
+8. `gh release create` ilə GitHub Release yarat və `--latest` təyin et.
 
-İlk növbədə docs/wiki mənbəyini redaktə edin və PR-də review edin. Wiki UI-də təcili düzəliş edilərsə eyni düzəlişi əsas repoya köçürün ki, növbəti nəşr onu geri çevirməsin.
+> GitHub ən son **yaradılan** release-i "Latest" sayır, ən yüksək versiyanı yox.
+> Köhnə buraxılışları sonradan əlavə edirsənsə, sonda `gh release edit <yeni> --latest` çağır.
 
-[Tam release proseduru](../RELEASING.md) · [Changelog](../../CHANGELOG.md)
+## Avtomatik yoxlamalar
+
+| Workflow | Nə yoxlayır | Nə vaxt |
+|---|---|---|
+| `ci.yml` | Build, testlər, Godot layihələri, e2e smoke test, Docker, sənəd linkləri | Hər push və PR |
+| `codeql.yml` | C# və Actions üçün statik təhlükəsizlik analizi | Push, PR, həftəlik |
+| `security.yml` | Zəif/köhnəlmiş paketlər, PR asılılıq nəzarəti, repo gigiyenası | Push, PR, həftəlik |
+
+`main` və `develop` branch protection ilə qorunur: PR olmadan push edilmir və
+tələb olunan yoxlamalar keçməlidir.
+
+## Commit qaydaları
+
+- Conventional Commits: `feat(server):`, `fix(client):`, `docs(wiki):`, `chore(deps):`
+- **DCO məcburidir:** `git commit -s` ([CONTRIBUTING](../../CONTRIBUTING.md))
+- SSH imzası tövsiyə olunur: `tools/setup-signing.ps1`
+
+[Töhfə vermək](../../CONTRIBUTING.md) · [Təhlükəsizlik](../../SECURITY.md) · [Testlər](Testing.md)
