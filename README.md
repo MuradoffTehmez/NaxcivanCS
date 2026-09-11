@@ -3,7 +3,7 @@
 > Competitive Multiplayer Tactical FPS — Godot 4 + C#, server-authoritative dedicated server.
 
 **Status:** Phase 1 — Prototype 0.1 (oynanıla bilən şəbəkə vertical slice)
-**Versiya:** 0.2.0
+**Versiya:** 0.2.1
 **Sənəd:** [docs/PRD.md](docs/PRD.md)
 
 ---
