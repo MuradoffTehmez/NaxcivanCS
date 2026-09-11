@@ -48,6 +48,10 @@ yoxlamalar yaşıl olduqda `release/*` vasitəsilə `main`-ə çıxarılır.
    kod eyni olsa belə. `main` `develop`-u tam ehtiva etdiyi üçün bu
    fast-forward-dur, force-push deyil.
 
+   > Bu push `develop`-un yoxlama tələbini bypass edir və **admin hüququ tələb
+   > edir**. Təhlükəsizdir, çünki fast-forward edilən commit artıq `main`-də
+   > bütün yoxlamalardan keçib.
+
 > GitHub ən son **yaradılan** release-i "Latest" sayır, ən yüksək versiyanı yox.
 > Köhnə buraxılışları sonradan əlavə edirsənsə, sonda `gh release edit <yeni> --latest` çağır.
 
@@ -63,18 +67,27 @@ yoxlamalar yaşıl olduqda `release/*` vasitəsilə `main`-ə çıxarılır.
 
 | Qayda | `main` | `develop` |
 |---|---|---|
-| PR tələb olunur | ✅ | ✅ |
 | Tələb olunan yoxlamalar | 8 (CodeQL daxil) | 6 |
-| Branch güncel olmalıdır | ✅ | ❌ |
-| Söhbətlər həll olunmalıdır | ✅ | ❌ |
+| Branch güncel olmalıdır (`strict`) | ❌ | ❌ |
 | Force push | ❌ | ❌ |
 | Branch silinməsi | ❌ | ❌ |
 | Admin üçün məcburi | ❌ | ❌ |
 
-**Admin üçün məcburi deyil** — repo sahibi buraxılış sinxronu və təcili
-düzəliş üçün qaydadan yan keçə bilir. Bu, şüurlu güzəştdir: tək saxlayıcılı
-layihədə tam kilid özünü kilidləmək riskini yaradır. Komanda böyüyəndə
-`enforce_admins` açılmalıdır.
+Tələb olunan yoxlamalar birbaşa push-u praktiki olaraq bloklayır: push edilən
+commit-in keçmiş yoxlaması olmur, ona görə rədd edilir. İş PR ilə gedir.
+
+**`strict` (branch güncel olmalıdır) qəsdən söndürülüb.** Açıq olduqda hər
+buraxılış PR-ından əvvəl `develop`-a `main`-dən merge etmək lazım gəlirdi və
+bu, iki branch-i hər dəfə bir commit fərqləndirirdi — yəni sənədin əvvəlində
+təsvir olunan problemin özünü yaradırdı.
+
+**Approval tələbi də söndürülüb.** Açıq olduqda (0 approval ilə belə) PR
+`BLOCKED` vəziyyətində qalırdı və yalnız admin bypass ilə merge olunurdu —
+yəni adi töhfə verən üçün qapalı olardı.
+
+**Admin üçün məcburi deyil** — repo sahibi buraxılış sinxronu üçün qaydadan
+yan keçə bilir. Bu, şüurlu güzəştdir: tək saxlayıcılı layihədə tam kilid
+özünü kilidləmək riskini yaradır. Komanda böyüyəndə `enforce_admins` açılmalıdır.
 
 ### Repo təhlükəsizlik parametrləri
 
