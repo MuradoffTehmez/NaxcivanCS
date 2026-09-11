@@ -1,6 +1,6 @@
 # NaxcivanCS
 
-**Buraxılış: 0.2.2** · **Build: 0.2.2** · **Protokol: 2** · **Mərhələ: oynanıla bilən prototip**
+**Buraxılış: 0.3.0** · **Build: 0.3.0** · **Protokol: 2** · **Mərhələ: oynanıla bilən prototip**
 
 NaxcivanCS Naxçıvan memarlığı və coğrafiyasından ilhamlanan, Godot 4 .NET və C# ilə hazırlanan müstəqil taktiki FPS layihəsidir. Məhsulun hədəfi 5v5 Bomb/Defuse oyunudur. Hazırkı build lokal və şəbəkə üzərindən hərəkət, tüfənglə atəş, damage, ölüm və respawn sınağı üçündür; tam competitive oyun hələ hazır deyil.
 
@@ -12,7 +12,7 @@ NaxcivanCS Naxçıvan memarlığı və coğrafiyasından ilhamlanan, Godot 4 .NE
 
 ## Hazırda nə var?
 
-| Sistem | 0.2.2 vəziyyəti |
+| Sistem | 0.3.0 vəziyyəti |
 |---|---|
 | Dedicated server, ENet/UDP | 64 Hz simulyasiya, hər ikinci tick-də snapshot |
 | Hərəkət | Lokal prediction, server reconciliation, uzaq oyunçu interpolation |
