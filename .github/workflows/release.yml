@@ -114,7 +114,7 @@ jobs:
           # environment errors (fontconfig, xkb, display/GPU) with the same
           # "ERROR:" prefix; those do not affect the exported artifact.
           { grep '^ERROR:' export.log || true; } \
-            | grep -vE 'fontconfig|xkbcommon|DisplayServer|OpenGL|Vulkan' > export-errors.log
+            | grep -vE 'fontconfig|xkbcommon|DisplayServer|OpenGL|Vulkan' > export-errors.log || true
           if [ -s export-errors.log ]; then
             echo '::error::Godot export reported errors'
             cat export-errors.log
@@ -142,7 +142,7 @@ jobs:
           { grep "ERROR" export-smoke.log || true; } \
             | grep -vE 'fontconfig|xkbcommon|DisplayServer|OpenGL|Vulkan' \
             | grep -vE 'Unreferenced static string|RID allocations|Pages in use exist at exit' \
-            > smoke-errors.log
+            > smoke-errors.log || true
           if [ -s smoke-errors.log ] || grep -q "config tapılmadı" export-smoke.log; then
             echo '::error::Exported server smoke test reported errors'
             cat smoke-errors.log
